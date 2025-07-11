@@ -1,0 +1,3 @@
+* "scotrail apologise" 
+** simple 3d train simulator
+*** TODO setup sdl3 and vulkan 

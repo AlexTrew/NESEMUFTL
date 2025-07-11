@@ -1,0 +1,9 @@
+CMakeFiles
+CMakeCache.txt
+CMakeFiles
+Makefile
+SDL/
+cmake_install.cmake
+compile_commands.json
+ya-nes-emu/
+.cache
