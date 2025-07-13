@@ -14,13 +14,18 @@ static unsigned long master_clock_cycle_count = 0;
 
 int main(){
 
-  Cpu* cpu = (Cpu*)malloc(sizeof(Cpu));
+  // fake RAM since its not important now
+  uint16_t bus[0xFFFE];
+  for(int i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
+    bus[i] = 69;
+  }
+
+  Cpu* cpu = init_cpu(bus);
   
   while(true){
     ++master_clock_cycle_count;
-    cpu_cycle(cpu, master_clock_cycle_count);
-    printf("master clock: %ld, cpu clock %ld\n", master_clock_cycle_count, cpu->cpu_cycle_count);
+    cpu_cycle(cpu);
     }
 
-  free(cpu);
+  delete_cpu(cpu);
 }

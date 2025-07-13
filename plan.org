@@ -1,3 +1,13 @@
-* "scotrail apologise" 
-** simple 3d train simulator
-*** TODO setup sdl3 and vulkan 
+* nesemuftl 
+** cpu
+*** [[https://www.nesdev.org/wiki/Instruction_reference][instructions]] 
+**** addressing modes
+***** immediate addressing
+this is the simplest addressing mode for an instruction type:
+the first byte contains the opcode and the second contains the data
+**** opcodes
+***** processing opcodes
+read the opcode,
+lookup the instruction info in the table (make a table!)
+determine how many cycles are needed.
+if no cycles needed, read the next instruction.
