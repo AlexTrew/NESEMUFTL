@@ -11,3 +11,8 @@ read the opcode,
 lookup the instruction info in the table (make a table!)
 determine how many cycles are needed.
 if no cycles needed, read the next instruction.
+
+* learning notes!
+Thinking through a problem by writing it out is a great way of seeing where the holes in my knowledge are. I should do more of it!
+`static` in c is quite cool, both for functions and for variables 
+I shouldn't be afraid to really explore a problem before speeding off to implement a solution

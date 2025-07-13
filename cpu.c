@@ -14,9 +14,6 @@ static uint8_t cpu_read_from_bus(Cpu* cpu, uint16_t addr);
 static void cpu_write(Cpu* cpu, uint16_t addr, uint8_t data);
 
 static uint8_t cpu_read_from_bus(Cpu* cpu, uint16_t addr){
-
-  printf("addr passed %d\n", addr);
-  printf("bus val %d\n", cpu->bus[addr]);
   return cpu->bus[addr];
 }
 
@@ -67,20 +64,20 @@ void cpu_cycle(Cpu* cpu){
     current_instruction_ptr = NULL;
   }
 
+  // If there is no active instruction, look one up using the op code pointed to by the
+  // program counter.
   if(current_instruction_ptr == NULL){
-    /*
-      get the opcode from the bus and look up the instruction
-     */
-    printf("pc addr: %d\n", cpu->pc);
     uint8_t opcode = cpu_read_from_bus(cpu, cpu->pc);
-    printf("instruction opcode: %d\n", opcode);
     current_instruction_ptr = (CpuInstruction*)malloc(sizeof(CpuInstruction));
     memcpy(current_instruction_ptr, &cpu_instruction_lookup[opcode], sizeof(CpuInstruction));
+
     process_instruction(current_instruction_ptr);
   }
+  // If there is, just keep executing it.
   else{
     process_instruction(current_instruction_ptr);
   }
 
+  // Increment the program counter.
   ++cpu->pc;
 }
