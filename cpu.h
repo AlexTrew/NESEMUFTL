@@ -25,16 +25,20 @@ typedef enum {
 } CpuStatusFlag;
 
 typedef enum{
-  ACCUMULATOR,
+  ACCUM,
+  IMM,
   ABSOLUTE,
-  ZERO_PAGE,
-  INDEXED_ZERO_PAGE,
-  INDEXED_ABSOLUTE,
+  ZP,
+  ZP_X,
+  ZP_Y,
+  ABS,
+  ABS_X,
+  ABS_Y,
   IMPLIED,
   RELATIVE,
-  INDIRECT_X,
-  INDIRECT_Y,
-  ABSOLUTE_INDIRECT,
+  IND_X,
+  IND_Y,
+  INDIRECT,
   NONE
 } AddrMode;
 
