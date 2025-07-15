@@ -17,7 +17,7 @@ int main(){
   // fake RAM since its not important now
   uint16_t bus[0xFFFE];
   for(int i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
-    bus[i] = 69;
+    bus[i] = 0x69;
   }
 
   Cpu* cpu = init_cpu(bus);

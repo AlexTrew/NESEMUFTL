@@ -24,10 +24,25 @@ typedef enum {
   N = (1 << 7),
 } CpuStatusFlag;
 
+typedef enum{
+  ACCUMULATOR,
+  ABSOLUTE,
+  ZERO_PAGE,
+  INDEXED_ZERO_PAGE,
+  INDEXED_ABSOLUTE,
+  IMPLIED,
+  RELATIVE,
+  INDIRECT_X,
+  INDIRECT_Y,
+  ABSOLUTE_INDIRECT,
+  NONE
+} AddrMode;
+
 typedef struct {
   char* name;
   uint8_t mem_needed;
   uint8_t cycles_left;
+  AddrMode addressing_mode;
 } CpuInstruction;
 
 typedef struct {
@@ -40,7 +55,6 @@ typedef struct {
   uint8_t status;
   uint16_t* bus; 
 } Cpu;
-
 
 Cpu *init_cpu(uint16_t* bus);
 void delete_cpu(Cpu* cpu);
