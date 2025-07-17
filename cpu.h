@@ -42,8 +42,68 @@ typedef enum{
   NONE
 } AddrMode;
 
+typedef enum {
+  ADC,
+  AND,
+  ASL,
+  BCC,
+  BCS,
+  BEQ,
+  BIT,
+  BMI,
+  BNE,
+  BPL,
+  BRK,
+  BVC,
+  BVS,
+  CLC,
+  CLD,
+  CLI,
+  CLV,
+  CMP,
+  CPX,
+  CPY,
+  DEC,
+  DEX,
+  DEY,
+  EOR,
+  INC,
+  INX,
+  INY,
+  JMP,
+  JSR,
+  LDA,
+  LDX,
+  LDY,
+  LSR,
+  NOP,
+  ORA,
+  PHA,
+  PHP,
+  PLA,
+  PLP,
+  ROL,
+  ROR,
+  RTI,
+  TRS,
+  SBC,
+  SEC,
+  SED,
+  SEI,
+  STA,
+  STX,
+  STY,
+  TAX,
+  TAY,
+  TSX,
+  TXA,
+  TXS,
+  TYA,
+  ILLEGAL_INSTRUCTION
+} CpuInstructionName;
+
 typedef struct {
-  char* name;
+  CpuInstructionName name;
   uint8_t mem_needed;
   uint8_t cycles_left;
   AddrMode addressing_mode;
