@@ -6,4 +6,6 @@ SDL/
 cmake_install.cmake
 compile_commands.json
 ya-nes-emu/
+CTestTestfile.cmake
+libcpu.a
 .cache

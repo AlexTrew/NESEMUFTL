@@ -277,9 +277,7 @@ static uint8_t cpu_read_from_bus(Cpu* cpu, uint16_t addr){
 }
 
 static void cpu_write(Cpu* cpu, uint16_t addr, uint8_t data){
-  if(addr >= 0x0000 && addr <= 0xFFFF){
-    cpu->bus[addr] = data;
-  }
+  cpu->bus[addr] = data;
 }
 
 static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
@@ -292,7 +290,7 @@ static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
 }
 
 static void process_instruction(CpuInstruction* instruction){
-    printf("instruction: %s, cycles_left: %d\n", instruction->name, instruction->cycles_left);
+    printf("instruction: %d, cycles_left: %d\n", instruction->name, instruction->cycles_left);
     --instruction->cycles_left;
 }
 
@@ -330,7 +328,7 @@ void cpu_cycle(Cpu* cpu){
     current_instruction_ptr = (CpuInstruction*)malloc(sizeof(CpuInstruction));
 
     memcpy(current_instruction_ptr, &cpu_instruction_lookup[opcode], sizeof(CpuInstruction));
-    if(strcmp(current_instruction_ptr->name, "???") == 0){
+    if(current_instruction_ptr->name == ILLEGAL_INSTRUCTION){
       printf("illegal instruction (opcode %d)\n", opcode);
     }
     else {

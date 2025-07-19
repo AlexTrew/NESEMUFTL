@@ -5,7 +5,9 @@
   This is the cpu. we are emulating the 6502 cpu. 
 
   see https://www.nesdev.org/wiki/CPU_ALL for details
-  see the datasheet: https://www.princeton.edu/~mae412/HANDOUTS/Datasheets/6502.pdf
+  see the datasheets:
+  https://www.princeton.edu/~mae412/HANDOUTS/Datasheets/6502.pdf
+  https://web.archive.org/web/20221112231348if_/http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
 
   notes:
   - instructions recieved by the cpu are different sizes (1,2, or 3), and can take different
@@ -85,6 +87,7 @@ typedef enum {
   ROL,
   ROR,
   RTI,
+  RTS,
   TRS,
   SBC,
   SEC,
@@ -102,7 +105,7 @@ typedef enum {
   ILLEGAL_INSTRUCTION
 } CpuInstructionName;
 
-typedef struct {
+typedef struct CpuInstruction{
   CpuInstructionName name;
   uint8_t mem_needed;
   uint8_t cycles_left;
@@ -111,7 +114,7 @@ typedef struct {
 
 typedef struct {
   unsigned long cpu_cycle_count;
-  uint8_t pc; 
+  uint16_t pc; 
   uint8_t a;
   uint8_t x;
   uint8_t y;
