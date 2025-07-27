@@ -1,6 +1,7 @@
 #include <check.h>
+#include <stdint.h>
 #include <stdlib.h>
-#include "../cpu.h"
+#include "../cpu.c"
 
 /*
   Test the cpu library
@@ -22,6 +23,59 @@ void teardown(void){
     delete_cpu(cpu);
 }
 
+START_TEST(test_immediate_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    cpu->pc = 0x00FE;
+
+    uint16_t res = get_operand_with_immediate_addressing(cpu);
+    ck_assert(res == bus[0x00FF]);
+}
+END_TEST
+
+START_TEST(test_absolute_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    bus[0x0100] = 0xFE;
+    cpu->pc = 0x00FE;
+
+    uint16_t res = get_operand_with_absolute_addressing(cpu);
+    ck_assert(res == 0xFE16);
+}
+END_TEST
+
+START_TEST(test_zp_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    cpu->pc = 0x00FE;
+
+    uint16_t res = get_operand_with_zero_page_addressing(cpu);
+    ck_assert(res == 0x0016);
+}
+END_TEST
+
+START_TEST(test_zpx_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    cpu->pc = 0x00FE;
+    cpu->x = 0x01;
+
+    uint16_t res = get_operand_with_zero_page_x_offset_addressing(cpu);
+    ck_assert(res == 0x0017);
+}
+END_TEST
+
+START_TEST(test_zpy_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    cpu->pc = 0x00FE;
+    cpu->y = 0x01;
+
+    uint16_t res = get_operand_with_zero_page_y_offset_addressing(cpu);
+    ck_assert(res == 0x0017);
+}
+END_TEST
+
 
 START_TEST(lookup_cpu_instruction_from_opcode){
 
@@ -39,6 +93,11 @@ Suite* make_cpu_tests(void){
 
   tcase_add_checked_fixture(tc, setup, teardown);
   tcase_add_test(tc, lookup_cpu_instruction_from_opcode);
+  tcase_add_test(tc, test_immediate_addressing_mode);
+  tcase_add_test(tc, test_absolute_addressing_mode);
+  tcase_add_test(tc, test_zp_addressing_mode);
+  tcase_add_test(tc, test_zpx_addressing_mode);
+  tcase_add_test(tc, test_zpy_addressing_mode);
 
   suite_add_tcase(s, tc);
 
