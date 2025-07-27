@@ -268,7 +268,11 @@ const CpuInstruction cpu_instruction_lookup[] = {
 };
 
 
-static uint8_t get_operand_with_immediate_addressing(const uint16_t* memory, const uint16_t pc);
+static uint16_t get_operand_with_immediate_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_absolute_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_zero_page_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_zero_page_x_offset_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_zero_page_y_offset_addressing(const Cpu* cpu);
 
 static void process_instruction(Cpu* cpu, const CpuInstruction* instruction);
 static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v);
@@ -292,13 +296,35 @@ static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
   }
 }
 
-static uint8_t get_operand_with_immediate_addressing(const uint16_t* memory, const uint16_t pc){
+static uint16_t get_operand_with_immediate_addressing(const Cpu* cpu){
   /*
     get operand using immediate mode addressing: simply get the next byte after the instruction as
     the operand
    */
-  return memory[pc+1];
+  return cpu->bus[cpu->pc+1];
 }
+
+static uint16_t get_operand_with_absolute_addressing(const Cpu* cpu){
+  uint16_t lo_order_bits = cpu->bus[cpu->pc+1];
+  uint16_t hi_order_bits = cpu->bus[cpu->pc+2];
+  return (hi_order_bits << 8) | lo_order_bits;
+}
+
+static uint16_t get_operand_with_zero_page_addressing(const Cpu* cpu){
+  uint16_t addr = cpu->bus[cpu->pc+1];
+  return (addr & 0x00FF);
+}
+
+static uint16_t get_operand_with_zero_page_x_offset_addressing(const Cpu* cpu){
+  uint16_t addr = cpu->bus[cpu->pc+1];
+  return ((addr + cpu->x) & 0x00FF);
+}
+
+static uint16_t get_operand_with_zero_page_y_offset_addressing(const Cpu* cpu){
+  uint16_t addr = cpu->bus[cpu->pc+1];
+  return ((addr + cpu->y) & 0x00FF);
+}
+
 
 static void process_instruction(Cpu* cpu, const CpuInstruction* instruction){
   //  uint8_t operand = instruction->addr_mode_func(cpu);
