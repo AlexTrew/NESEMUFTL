@@ -1,4 +1,5 @@
 #include <check.h>
+#include <stdlib.h>
 #include "../cpu.h"
 
 /*
@@ -7,35 +8,53 @@
   https://github.com/vndmtrx/check-cmake-example/blob/master/tests/test_sample.c
  */
 
-static Cpu* cpu;
+uint16_t bus[0xFFFE];
+Cpu* cpu;
 
 void setup(void){
-  uint16_t bus[0xFFFE];
-  for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
-    bus[i] = 0x16;
-  }
-
-  cpu = init_cpu(bus);
+    for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
+	bus[i] = 0x16;
+    }
+    cpu = init_cpu(bus);
 }
 
 void teardown(void){
-  delete_cpu(cpu);
+    delete_cpu(cpu);
 }
 
+
 START_TEST(lookup_cpu_instruction_from_opcode){
+
+    CpuInstruction* result = cpu_cycle(cpu);
+    ck_assert(result->name == ASL);
+    ck_assert(result->cycles_left == 6);
+    ck_assert(result->addressing_mode == ZP);
+
 }
+END_TEST
 
 Suite* make_cpu_tests(void){
   Suite *s = suite_create("cpu instruction lookup test suite");
-  TCase* cases = tcase_create("cpu instruction lookup test cases");
+  TCase* tc = tcase_create("cpu instruction lookup test");
 
-  tcase_add_test(cases, lookup_cpu_instruction_from_opcode);
+  tcase_add_checked_fixture(tc, setup, teardown);
+  tcase_add_test(tc, lookup_cpu_instruction_from_opcode);
 
-  suite_add_tcase(s, cases);
+  suite_add_tcase(s, tc);
 
   return s;
 }
 
 int main(){
-  return 0;
+  int failed = 0;
+  SRunner* sr;
+  sr = srunner_create(make_cpu_tests());
+  srunner_set_fork_status(sr, CK_NOFORK); 
+  srunner_set_log(sr, "test.log");
+  srunner_set_xml(sr, "test.xml");
+  srunner_run_all(sr, CK_VERBOSE);
+
+  failed = srunner_ntests_failed(sr);
+  srunner_free(sr);
+  return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }

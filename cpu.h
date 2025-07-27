@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 /*
-  This is the cpu. we are emulating the 6502 cpu. 
+  This is the cpu. we are emulating the MOS 6502. 
 
   see https://www.nesdev.org/wiki/CPU_ALL for details
   see the datasheets:
@@ -105,12 +105,6 @@ typedef enum {
   ILLEGAL_INSTRUCTION
 } CpuInstructionName;
 
-typedef struct CpuInstruction{
-  CpuInstructionName name;
-  uint8_t mem_needed;
-  uint8_t cycles_left;
-  AddrMode addressing_mode;
-} CpuInstruction;
 
 typedef struct {
   unsigned long cpu_cycle_count;
@@ -123,7 +117,75 @@ typedef struct {
   uint16_t* bus; 
 } Cpu;
 
+typedef struct CpuInstruction{
+  CpuInstructionName name;
+  uint8_t mem_needed;
+  uint8_t cycles_left;
+  // uint8_t (*instruction_func)(Cpu* cpu, const uint8_t operand);
+  // uint8_t (*addr_mode_func)(Cpu* cpu);
+  AddrMode addressing_mode;
+} CpuInstruction;
+
+
 Cpu *init_cpu(uint16_t* bus);
 void delete_cpu(Cpu* cpu);
-void cpu_cycle(Cpu* cpu);
 
+CpuInstruction* cpu_cycle(Cpu* cpu);
+
+uint8_t ADC_(Cpu* cpu, uint8_t operand);
+uint8_t AND_(Cpu* cpu, uint8_t operand);
+uint8_t ASL_(Cpu* cpu, uint8_t operand);
+uint8_t BCC_(Cpu* cpu, uint8_t operand);
+uint8_t BCS_(Cpu* cpu, uint8_t operand);
+uint8_t BEQ_(Cpu* cpu, uint8_t operand);
+uint8_t BIT_(Cpu* cpu, uint8_t operand);
+uint8_t BMI_(Cpu* cpu, uint8_t operand);
+uint8_t BNE_(Cpu* cpu, uint8_t operand);
+uint8_t BPL_(Cpu* cpu, uint8_t operand);
+uint8_t BRK_(Cpu* cpu, uint8_t operand);
+uint8_t BVC_(Cpu* cpu, uint8_t operand);
+uint8_t BVS_(Cpu* cpu, uint8_t operand);
+uint8_t CLC_(Cpu* cpu, uint8_t operand);
+uint8_t CLD_(Cpu* cpu, uint8_t operand);
+uint8_t CLI_(Cpu* cpu, uint8_t operand);
+uint8_t CLV_(Cpu* cpu, uint8_t operand);
+uint8_t CMP_(Cpu* cpu, uint8_t operand);
+uint8_t CPX_(Cpu* cpu, uint8_t operand);
+uint8_t CPY_(Cpu* cpu, uint8_t operand);
+uint8_t DEC_(Cpu* cpu, uint8_t operand);
+uint8_t DEX_(Cpu* cpu, uint8_t operand);
+uint8_t DEY_(Cpu* cpu, uint8_t operand);
+uint8_t EOR_(Cpu* cpu, uint8_t operand);
+uint8_t INC_(Cpu* cpu, uint8_t operand);
+uint8_t INX_(Cpu* cpu, uint8_t operand);
+uint8_t INY_(Cpu* cpu, uint8_t operand);
+uint8_t JMP_(Cpu* cpu, uint8_t operand);
+uint8_t JSR_(Cpu* cpu, uint8_t operand);
+uint8_t LDA_(Cpu* cpu, uint8_t operand);
+uint8_t LDX_(Cpu* cpu, uint8_t operand);
+uint8_t LDY_(Cpu* cpu, uint8_t operand);
+uint8_t LSR_(Cpu* cpu, uint8_t operand);
+uint8_t NOP_(Cpu* cpu, uint8_t operand);
+uint8_t ORA_(Cpu* cpu, uint8_t operand);
+uint8_t PHA_(Cpu* cpu, uint8_t operand);
+uint8_t PHP_(Cpu* cpu, uint8_t operand);
+uint8_t PLA_(Cpu* cpu, uint8_t operand);
+uint8_t PLP_(Cpu* cpu, uint8_t operand);
+uint8_t ROL_(Cpu* cpu, uint8_t operand);
+uint8_t ROR_(Cpu* cpu, uint8_t operand);
+uint8_t RTI_(Cpu* cpu, uint8_t operand);
+uint8_t RTS_(Cpu* cpu, uint8_t operand);
+uint8_t TRS_(Cpu* cpu, uint8_t operand);
+uint8_t SBC_(Cpu* cpu, uint8_t operand);
+uint8_t SEC_(Cpu* cpu, uint8_t operand);
+uint8_t SED_(Cpu* cpu, uint8_t operand);
+uint8_t SEI_(Cpu* cpu, uint8_t operand);
+uint8_t STA_(Cpu* cpu, uint8_t operand);
+uint8_t STX_(Cpu* cpu, uint8_t operand);
+uint8_t STY_(Cpu* cpu, uint8_t operand);
+uint8_t TAX_(Cpu* cpu, uint8_t operand);
+uint8_t TAY_(Cpu* cpu, uint8_t operand);
+uint8_t TSX_(Cpu* cpu, uint8_t operand);
+uint8_t TXA_(Cpu* cpu, uint8_t operand);
+uint8_t TXS_(Cpu* cpu, uint8_t operand);
+uint8_t TYA_(Cpu* cpu, uint8_t operand);

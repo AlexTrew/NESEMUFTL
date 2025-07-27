@@ -10,3 +10,4 @@ tests/test_cpu
 CTestTestfile.cmake
 libcpu.a
 .cache
+Testing

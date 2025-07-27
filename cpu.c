@@ -9,7 +9,7 @@
   See page 10 of archive.6502.org/datasheets/rockwell_r650x_r651x.pdf for a
   complete opcode -> instruction reference.
  */  
-static const CpuInstruction cpu_instruction_lookup[] = {
+const CpuInstruction cpu_instruction_lookup[] = {
   [0x00] = {.name=BRK, .cycles_left=7, .mem_needed=1, .addressing_mode=IMPLIED},
   [0x01] = {.name=ORA, .cycles_left=5, .mem_needed=2, .addressing_mode=IND_X},
   [0x02] = {.name=ILLEGAL_INSTRUCTION, .cycles_left=0, .mem_needed=0, .addressing_mode=NONE},
@@ -267,12 +267,15 @@ static const CpuInstruction cpu_instruction_lookup[] = {
   [0xFF] = {.name=ILLEGAL_INSTRUCTION, .cycles_left=0, .mem_needed=0, .addressing_mode=NONE},
 };
 
-static void process_instruction(CpuInstruction* instruction);
-static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v);
-static uint8_t cpu_read_from_bus(Cpu* cpu, uint16_t addr);
-static void cpu_write(Cpu* cpu, uint16_t addr, uint8_t data);
 
-static uint8_t cpu_read_from_bus(Cpu* cpu, uint16_t addr){
+static uint8_t get_operand_with_immediate_addressing(const uint16_t* memory, const uint16_t pc);
+
+static void process_instruction(Cpu* cpu, const CpuInstruction* instruction);
+static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v);
+static uint8_t cpu_read_from_bus(Cpu* cpu, const uint16_t addr);
+static void cpu_write(Cpu* cpu, const uint16_t addr, uint8_t data);
+
+static uint8_t cpu_read_from_bus(Cpu* cpu, const uint16_t addr){
   return cpu->bus[addr];
 }
 
@@ -289,9 +292,17 @@ static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
   }
 }
 
-static void process_instruction(CpuInstruction* instruction){
-    printf("instruction: %d, cycles_left: %d\n", instruction->name, instruction->cycles_left);
-    --instruction->cycles_left;
+static uint8_t get_operand_with_immediate_addressing(const uint16_t* memory, const uint16_t pc){
+  /*
+    get operand using immediate mode addressing: simply get the next byte after the instruction as
+    the operand
+   */
+  return memory[pc+1];
+}
+
+static void process_instruction(Cpu* cpu, const CpuInstruction* instruction){
+  //  uint8_t operand = instruction->addr_mode_func(cpu);
+  //instruction->instruction_func(cpu, operand);
 }
 
 Cpu *init_cpu(uint16_t* memory){
@@ -311,11 +322,12 @@ void delete_cpu(Cpu *cpu){
   free(cpu);
 }
 
-void cpu_cycle(Cpu* cpu){
+
+CpuInstruction* cpu_cycle(Cpu* cpu){
   static CpuInstruction* current_instruction_ptr = NULL;
 
   /* check if the current instruction is complete.
-     if so, clean it up */
+     if so, clean it up! */
   if(current_instruction_ptr && current_instruction_ptr->cycles_left == 0){
     free(current_instruction_ptr);
     current_instruction_ptr = NULL;
@@ -332,14 +344,20 @@ void cpu_cycle(Cpu* cpu){
       printf("illegal instruction (opcode %d)\n", opcode);
     }
     else {
-      process_instruction(current_instruction_ptr);
+      process_instruction(cpu, current_instruction_ptr);
     }
   }
-  // If there is, just keep executing it.
+
+  /* If there is, do nothing until the clock cycles go to zero. In this emulator, at least for now,
+   instructions are exectued in a single cpu iteration: the remaining cycles for the instruction are
+   simply so the timings are correct.*/
   else{
-    process_instruction(current_instruction_ptr);
+    --current_instruction_ptr->cycles_left;
   }
 
   // Increment the program counter.
   ++cpu->pc;
+
+  // return the current instruction pointer for debugging purposes
+  return current_instruction_ptr; 
 }
