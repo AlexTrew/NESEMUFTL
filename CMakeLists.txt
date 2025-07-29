@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25.1)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-project(neftl)
+project(nesemuftl)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Show all warning messages
@@ -13,10 +13,10 @@ file(GLOB SOURCES
      )
 
 add_library(cpu cpu.h cpu.c)
-add_executable(neftl ${SOURCES})
+add_executable(nesemuftl ${SOURCES})
 
-set_target_properties(neftl PROPERTIES LINKER_LANGUAGE C)
-target_link_libraries(neftl cpu)
+set_target_properties(nesemuftl PROPERTIES LINKER_LANGUAGE C)
+target_link_libraries(nesemuftl cpu)
 
 enable_testing()
 add_subdirectory(tests)
