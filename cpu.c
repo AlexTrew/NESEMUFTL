@@ -270,6 +270,8 @@ const CpuInstruction cpu_instruction_lookup[] = {
 
 static uint16_t get_operand_with_immediate_addressing(const Cpu* cpu);
 static uint16_t get_operand_with_absolute_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_absolute_x_addressing(const Cpu* cpu);
+static uint16_t get_operand_with_absolute_y_addressing(const Cpu* cpu);
 static uint16_t get_operand_with_zero_page_addressing(const Cpu* cpu);
 static uint16_t get_operand_with_zero_page_x_offset_addressing(const Cpu* cpu);
 static uint16_t get_operand_with_zero_page_y_offset_addressing(const Cpu* cpu);
@@ -310,6 +312,14 @@ static uint16_t get_operand_with_absolute_addressing(const Cpu* cpu){
   return (hi_order_bits << 8) | lo_order_bits;
 }
 
+static uint16_t get_operand_with_absolute_x_addressing(const Cpu* cpu){
+  return get_operand_with_absolute_addressing(cpu) + cpu->x;
+}
+
+static uint16_t get_operand_with_absolute_y_addressing(const Cpu* cpu){
+  return get_operand_with_absolute_addressing(cpu) + cpu->y;
+}
+
 static uint16_t get_operand_with_zero_page_addressing(const Cpu* cpu){
   uint16_t addr = cpu->bus[cpu->pc+1];
   return (addr & 0x00FF);
@@ -324,7 +334,6 @@ static uint16_t get_operand_with_zero_page_y_offset_addressing(const Cpu* cpu){
   uint16_t addr = cpu->bus[cpu->pc+1];
   return ((addr + cpu->y) & 0x00FF);
 }
-
 
 static void process_instruction(Cpu* cpu, const CpuInstruction* instruction){
   //  uint8_t operand = instruction->addr_mode_func(cpu);
@@ -348,7 +357,6 @@ void delete_cpu(Cpu *cpu){
   free(cpu);
 }
 
-
 CpuInstruction* cpu_cycle(Cpu* cpu){
   static CpuInstruction* current_instruction_ptr = NULL;
 
@@ -358,7 +366,7 @@ CpuInstruction* cpu_cycle(Cpu* cpu){
     free(current_instruction_ptr);
     current_instruction_ptr = NULL;
   }
-
+  
   // If there is no active instruction, look one up using the op code pointed to by the
   // program counter.
   if(current_instruction_ptr == NULL){

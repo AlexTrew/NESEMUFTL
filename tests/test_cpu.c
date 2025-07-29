@@ -44,6 +44,30 @@ START_TEST(test_absolute_addressing_mode){
 }
 END_TEST
 
+START_TEST(test_absolute_x_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    bus[0x0100] = 0xFE;
+    cpu->x=0x04;
+    cpu->pc = 0x00FE;
+
+    uint16_t res = get_operand_with_absolute_x_addressing(cpu);
+    ck_assert(res == 0xFE1A);
+}
+END_TEST
+
+START_TEST(test_absolute_y_addressing_mode){
+    bus[0x00FE] = 0x15;
+    bus[0x00FF] = 0x16;
+    bus[0x0100] = 0xFE;
+    cpu->y=0x04;
+    cpu->pc = 0x00FE;
+
+    uint16_t res = get_operand_with_absolute_y_addressing(cpu);
+    ck_assert(res == 0xFE1A);
+}
+END_TEST
+
 START_TEST(test_zp_addressing_mode){
     bus[0x00FE] = 0x15;
     bus[0x00FF] = 0x16;
@@ -95,6 +119,8 @@ Suite* make_cpu_tests(void){
   tcase_add_test(tc, lookup_cpu_instruction_from_opcode);
   tcase_add_test(tc, test_immediate_addressing_mode);
   tcase_add_test(tc, test_absolute_addressing_mode);
+  tcase_add_test(tc, test_absolute_x_addressing_mode);
+  tcase_add_test(tc, test_absolute_y_addressing_mode);
   tcase_add_test(tc, test_zp_addressing_mode);
   tcase_add_test(tc, test_zpx_addressing_mode);
   tcase_add_test(tc, test_zpy_addressing_mode);
