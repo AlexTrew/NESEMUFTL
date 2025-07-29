@@ -126,7 +126,6 @@ typedef struct CpuInstruction{
   AddrMode addressing_mode;
 } CpuInstruction;
 
-
 Cpu *init_cpu(uint16_t* bus);
 void delete_cpu(Cpu* cpu);
 
