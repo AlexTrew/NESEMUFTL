@@ -4,6 +4,10 @@
 
 
 typedef struct CpuAddressingModeResult{
+  /* the result of an addressing mode.
+     pc_pffset: the number of bytes by which using this addressing mode should increment the program counter.
+     operand_addr: the memory address where the operand (if any) of the current instruction can be found. */
+  
   int8_t pc_offset;
   uint16_t operand_addr;
 } CpuAddressingModeResult;
@@ -17,5 +21,6 @@ CpuAddressingModeResult get_operand_with_zero_page_addressing(const uint16_t pc,
 CpuAddressingModeResult get_operand_with_zero_page_x_offset_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus);
 CpuAddressingModeResult get_operand_with_zero_page_y_offset_addressing(const uint16_t pc, const uint8_t y_reg, const uint16_t* bus);
 CpuAddressingModeResult get_operand_with_relative_addressing(const uint16_t pc, const uint16_t* bus);
+CpuAddressingModeResult get_operand_with_indirect_x_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus);
 
 #endif

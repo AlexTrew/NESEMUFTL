@@ -86,25 +86,27 @@ START_TEST(test_zp_addressing_mode){
 END_TEST
 
 START_TEST(test_zpx_addressing_mode){
-    bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
-    cpu->pc = 0x00FE;
+    bus[0x00FD] = 0x15;
+    bus[0x00FE] = 0x16;
+    bus[0x00FF] = 0x20;
+    cpu->pc = 0x00FD;
     cpu->x = 0x01;
 
     CpuAddressingModeResult res = get_operand_with_zero_page_x_offset_addressing(cpu->pc, cpu->x, bus);
-    uint16_t expected = 0x0017;
+    uint16_t expected = 0x0020;
     ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
 }
 END_TEST
 
 START_TEST(test_zpy_addressing_mode){
-    bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
-    cpu->pc = 0x00FE;
+    bus[0x00FD] = 0x15;
+    bus[0x00FE] = 0x16;
+    bus[0x00FF] = 0x20;
+    cpu->pc = 0x00FD;
     cpu->y = 0x01;
 
     CpuAddressingModeResult res = get_operand_with_zero_page_y_offset_addressing(cpu->pc, cpu->y, bus);
-    uint16_t expected = 0x0017;
+    uint16_t expected = 0x0020;
     ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
 
 }

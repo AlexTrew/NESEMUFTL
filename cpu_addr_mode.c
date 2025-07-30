@@ -35,13 +35,13 @@ CpuAddressingModeResult get_operand_with_zero_page_addressing(const uint16_t pc,
 }
 
 CpuAddressingModeResult get_operand_with_zero_page_x_offset_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus){
-  uint16_t addr = (bus[pc+1] & 0x00FF) + x_reg;
+  uint16_t addr = (bus[pc+1+x_reg] & 0x00FF);
   CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult get_operand_with_zero_page_y_offset_addressing(const uint16_t pc, const uint8_t y_reg, const uint16_t* bus){
-  uint16_t addr = ((bus[pc+1] + y_reg) & 0x00FF);
+  uint16_t addr = (bus[pc+1+y_reg] & 0x00FF);
   CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
   return res;
 }
@@ -50,3 +50,12 @@ CpuAddressingModeResult get_operand_with_relative_addressing(const uint16_t pc, 
   CpuAddressingModeResult res = {.operand_addr=0, .pc_offset=bus[pc+1]};
   return res;
 }
+
+CpuAddressingModeResult get_operand_with_indirect_x_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus){
+  uint16_t lo = (bus[pc+x_reg+1] & 0x00FF);
+  uint16_t hi = (bus[pc+x_reg+2] & 0x00FF);
+  uint16_t addr = (hi <<8 | lo);
+  CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
+  return res;
+}
+
