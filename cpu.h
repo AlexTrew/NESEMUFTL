@@ -1,5 +1,10 @@
-# include <stdint.h>
+#ifndef CPU
+#define CPU
+
+#include <stdint.h>
 #include <stdbool.h>
+
+#include "cpu_addr_mode.h"
 
 /*
   This is the cpu. we are emulating the MOS 6502. 
@@ -188,3 +193,5 @@ uint8_t TSX_(Cpu* cpu, uint8_t operand);
 uint8_t TXA_(Cpu* cpu, uint8_t operand);
 uint8_t TXS_(Cpu* cpu, uint8_t operand);
 uint8_t TYA_(Cpu* cpu, uint8_t operand);
+
+#endif
