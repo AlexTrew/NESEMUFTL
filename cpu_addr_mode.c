@@ -36,13 +36,13 @@ CpuAddressingModeResult zero_page_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult zero_page_x_offset_addressing_mode(const CpuState* cpu){
-  uint16_t addr = (cpu->bus[cpu->pc+cpu->x+1] & 0x00FF);
+  uint16_t addr = ((cpu->bus[cpu->pc+1] + cpu->x) & 0x00FF);
   CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu){
-  uint16_t addr = (cpu->bus[cpu->pc+cpu->y+1] & 0x00FF);
+  uint16_t addr = ((cpu->bus[cpu->pc+1] + cpu->y) & 0x00FF);
   CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }

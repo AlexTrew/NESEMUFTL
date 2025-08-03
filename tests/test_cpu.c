@@ -50,11 +50,11 @@ END_TEST
 
 START_TEST(test_absolute_x_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
+    bus[0x00FF] = 0x00;
     bus[0x0100] = 0xFE;
-    cpu->x=0x04;
+    cpu->x=0x01;
     cpu->pc = 0x00FE;
-    uint16_t expected = 0xFE1A;
+    uint16_t expected = 0xFE01;
 
     CpuAddressingModeResult res = absolute_x_addressing_mode(cpu);
     ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
@@ -63,14 +63,15 @@ END_TEST
 
 START_TEST(test_absolute_y_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
+    bus[0x00FF] = 0x00;
     bus[0x0100] = 0xFE;
-    cpu->y=0x04;
+    cpu->y=0x01;
     cpu->pc = 0x00FE;
+    uint16_t expected = 0xFE01;
 
     CpuAddressingModeResult res = absolute_y_addressing_mode(cpu);
-    uint16_t expected = 0xFE1A;
     ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+
 }
 END_TEST
 
@@ -87,31 +88,28 @@ END_TEST
 
 START_TEST(test_zpx_addressing_mode){
     bus[0x00FD] = 0x15;
-    bus[0x00FE] = 0x16;
-    bus[0x00FF] = 0x20;
+    bus[0x00FE] = 0xa0;
     cpu->pc = 0x00FD;
     cpu->x = 0x01;
 
     CpuAddressingModeResult res = zero_page_x_offset_addressing_mode(cpu);
-    uint16_t expected = 0x0020;
+    uint16_t expected = 0x00a1;
     ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 }
 END_TEST
 
 START_TEST(test_zpy_addressing_mode){
     bus[0x00FD] = 0x15;
-    bus[0x00FE] = 0x16;
-    bus[0x00FF] = 0x20;
+    bus[0x00FE] = 0xa0;
     cpu->pc = 0x00FD;
     cpu->y = 0x01;
 
     CpuAddressingModeResult res = zero_page_y_offset_addressing_mode(cpu);
-    uint16_t expected = 0x0020;
+    uint16_t expected = 0x00a1;
     ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 
 }
 END_TEST
-
 
 START_TEST(lookup_cpu_instruction_from_opcode){
 
