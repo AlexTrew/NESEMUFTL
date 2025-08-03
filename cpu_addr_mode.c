@@ -12,8 +12,8 @@ CpuAddressingModeResult immediate_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult absolute_addressing_mode(const CpuState* cpu){
-     uint16_t lo_order_bits = cpu->bus[cpu->pc+1];
-     uint16_t hi_order_bits = cpu->bus[cpu->pc+2];
+     uint16_t lo_order_bits = cpu->bus[cpu->pc+1] & 0x00FF;
+     uint16_t hi_order_bits = cpu->bus[cpu->pc+2] & 0x00FF;
      CpuAddressingModeResult res = {.operand=(hi_order_bits << 8) | lo_order_bits, .pc_offset=2};
      return res;
 }
@@ -58,7 +58,7 @@ CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu){
 CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu){
   uint16_t lo = (cpu->bus[cpu->pc+cpu->x+1] & 0x00FF);
   uint16_t hi = (cpu->bus[cpu->pc+cpu->x+2] & 0x00FF);
-  uint16_t addr = (hi <<8 | lo);
+  uint16_t addr = (hi << 8 | lo);
   CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }
