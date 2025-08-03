@@ -102,7 +102,7 @@ typedef struct CpuInstruction{
 } CpuInstruction;
 
 
-CpuState *init_cpu(uint16_t* bus);
+CpuState *init_cpu(uint8_t* bus);
 
 void delete_cpu(CpuState* cpu);
 

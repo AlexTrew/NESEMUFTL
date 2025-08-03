@@ -7,48 +7,48 @@ CpuAddressingModeResult immediate_addressing_mode(const CpuState* cpu){
     get operand using immediate mode addressing: simply get the next byte after the instruction as
     the operand
    */
-  CpuAddressingModeResult res = {.operand_addr=cpu->bus[cpu->pc+1], .pc_offset=1};
+  CpuAddressingModeResult res = {.operand=cpu->bus[cpu->pc+1], .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult absolute_addressing_mode(const CpuState* cpu){
      uint16_t lo_order_bits = cpu->bus[cpu->pc+1];
      uint16_t hi_order_bits = cpu->bus[cpu->pc+2];
-     CpuAddressingModeResult res = {.operand_addr=(hi_order_bits << 8) | lo_order_bits, .pc_offset=2};
+     CpuAddressingModeResult res = {.operand=(hi_order_bits << 8) | lo_order_bits, .pc_offset=2};
      return res;
 }
 
 CpuAddressingModeResult absolute_x_addressing_mode(const CpuState* cpu){
   CpuAddressingModeResult res = absolute_addressing_mode(cpu);
-  res.operand_addr += cpu->x;
+  res.operand += cpu->x;
   return res;
 }
 
 CpuAddressingModeResult absolute_y_addressing_mode(const CpuState* cpu){
   CpuAddressingModeResult res = absolute_addressing_mode(cpu);
-  res.operand_addr += cpu->y;
+  res.operand += cpu->y;
   return res;
 }
 
 CpuAddressingModeResult zero_page_addressing_mode(const CpuState* cpu){
-  CpuAddressingModeResult res = {.operand_addr=cpu->bus[cpu->pc+1], .pc_offset=1};
+  CpuAddressingModeResult res = {.operand=cpu->bus[cpu->pc+1], .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult zero_page_x_offset_addressing_mode(const CpuState* cpu){
   uint16_t addr = (cpu->bus[cpu->pc+cpu->x+1] & 0x00FF);
-  CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
+  CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu){
   uint16_t addr = (cpu->bus[cpu->pc+cpu->y+1] & 0x00FF);
-  CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
+  CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }
 
 CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu){
-  CpuAddressingModeResult res = {.operand_addr=0, .pc_offset=cpu->bus[cpu->pc+1]};
+  CpuAddressingModeResult res = {.operand=0, .pc_offset=cpu->bus[cpu->pc+1]};
   return res;
 }
 
@@ -59,7 +59,7 @@ CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu){
   uint16_t lo = (cpu->bus[cpu->pc+cpu->x+1] & 0x00FF);
   uint16_t hi = (cpu->bus[cpu->pc+cpu->x+2] & 0x00FF);
   uint16_t addr = (hi <<8 | lo);
-  CpuAddressingModeResult res = {.operand_addr=addr, .pc_offset=1};
+  CpuAddressingModeResult res = {.operand=addr, .pc_offset=1};
   return res;
 }
 
@@ -73,7 +73,7 @@ CpuAddressingModeResult accumulator_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult invalid_addressing_mode(const CpuState* cpu){
-  CpuAddressingModeResult res = {.operand_addr=0, .pc_offset=0};
+  CpuAddressingModeResult res = {.operand=0, .pc_offset=0};
   return res;
 }
 

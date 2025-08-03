@@ -299,7 +299,7 @@ static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuIn
   return addr_mode_data.additional_cycles;
 }
 
-CpuState* init_cpu(uint16_t* memory){
+CpuState* init_cpu(uint8_t* memory){
   CpuState* cpu_ptr = (CpuState*)malloc(sizeof(CpuState));
   cpu_ptr->a=0x00;
   cpu_ptr->x=0x00;

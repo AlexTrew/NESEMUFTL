@@ -9,7 +9,7 @@
   https://github.com/vndmtrx/check-cmake-example/blob/master/tests/test_sample.c
  */
 
-uint16_t bus[0xFFFE];
+uint8_t bus[0xFFFF];
 CpuState* cpu;
 
 void setup(void){
@@ -29,8 +29,8 @@ START_TEST(test_immediate_addressing_mode){
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = immediate_addressing_mode(cpu);
-    uint16_t expected = 0x0016;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    uint8_t expected = 0x16;
+    ck_assert_msg(res.operand == expected, "result %#02x != expected %#02x", res.operand, expected);
 
 }
 END_TEST
@@ -43,7 +43,7 @@ START_TEST(test_absolute_addressing_mode){
 
     CpuAddressingModeResult res = absolute_addressing_mode(cpu);
     uint16_t expected = 0xFE16;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 
 }
 END_TEST
@@ -57,7 +57,7 @@ START_TEST(test_absolute_x_addressing_mode){
     uint16_t expected = 0xFE1A;
 
     CpuAddressingModeResult res = absolute_x_addressing_mode(cpu);
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 }
 END_TEST
 
@@ -70,7 +70,7 @@ START_TEST(test_absolute_y_addressing_mode){
 
     CpuAddressingModeResult res = absolute_y_addressing_mode(cpu);
     uint16_t expected = 0xFE1A;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 }
 END_TEST
 
@@ -81,7 +81,7 @@ START_TEST(test_zp_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_addressing_mode(cpu);
     uint16_t expected = 0x0016;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 }
 END_TEST
 
@@ -94,7 +94,7 @@ START_TEST(test_zpx_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_x_offset_addressing_mode(cpu);
     uint16_t expected = 0x0020;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 }
 END_TEST
 
@@ -107,7 +107,7 @@ START_TEST(test_zpy_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_y_offset_addressing_mode(cpu);
     uint16_t expected = 0x0020;
-    ck_assert_msg(res.operand_addr == expected, "result %#04x != expected %#04x", res.operand_addr, expected);
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
 
 }
 END_TEST

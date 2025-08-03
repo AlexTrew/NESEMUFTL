@@ -12,7 +12,7 @@ static unsigned long master_clock_cycle_count = 0;
 
 int main(){
   // fake RAM since its not important now
-  uint16_t bus[0xFFFE];
+  uint8_t bus[0xFFFF];
   for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
     bus[i] = 0x16;
   }

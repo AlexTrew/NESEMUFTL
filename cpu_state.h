@@ -11,7 +11,7 @@ typedef struct {
   uint8_t y;
   uint8_t stkptr;
   uint8_t status;
-  uint16_t* bus; 
+  uint8_t* bus; 
 } CpuState;
 
 #endif
