@@ -12,7 +12,7 @@ file(GLOB SOURCES
   main.c
      )
 
-add_library(cpu cpu_state.h cpu.h cpu.c cpu_addr_mode.h cpu_addr_mode.c)
+add_library(cpu cpu_state.h cpu.h cpu.c cpu_addr_mode.h cpu_addr_mode.c commands.c commands.h)
 add_executable(nesemuftl ${SOURCES})
 
 set_target_properties(nesemuftl PROPERTIES LINKER_LANGUAGE C)

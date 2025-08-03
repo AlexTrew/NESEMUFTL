@@ -123,6 +123,19 @@ START_TEST(lookup_cpu_instruction_from_opcode){
 }
 END_TEST
 
+START_TEST(test_absolute_adc_command) {
+    // Operand location
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+    // Operand value
+    bus[0xDDDD] = 0x01;
+    cpu->pc = 0x00FD;
+
+    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABSOLUTE]);
+    ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
+}
+END_TEST
+
 Suite* make_cpu_tests(void){
   Suite *s = suite_create("cpu instruction lookup test suite");
   TCase* tc = tcase_create("cpu instruction lookup test");
@@ -136,6 +149,7 @@ Suite* make_cpu_tests(void){
   tcase_add_test(tc, test_zp_addressing_mode);
   tcase_add_test(tc, test_zpx_addressing_mode);
   tcase_add_test(tc, test_zpy_addressing_mode);
+    tcase_add_test(tc, test_absolute_adc_command);
 
   suite_add_tcase(s, tc);
 
