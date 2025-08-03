@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+#include "commands.h"
 
 /*
   See page 10 of archive.6502.org/datasheets/rockwell_r650x_r651x.pdf for a
