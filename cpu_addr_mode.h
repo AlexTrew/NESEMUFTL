@@ -1,7 +1,26 @@
 #ifndef CPU_ADDR_MODE
 #define CPU_ADDR_MODE
-#include <stdint.h>
 
+#include <stdint.h>
+#include "cpu_state.h"
+
+typedef enum{
+  ACCUM,
+  IMM,
+  ABSOLUTE,
+  ZP,
+  ZP_X,
+  ZP_Y,
+  ABS,
+  ABS_X,
+  ABS_Y,
+  IMPLIED,
+  RELATIVE,
+  IND_X,
+  IND_Y,
+  INDIRECT,
+  NONE
+} CpuAddrMode;
 
 typedef struct CpuAddressingModeResult{
   /* the result of an addressing mode.
@@ -15,15 +34,22 @@ typedef struct CpuAddressingModeResult{
   uint8_t additional_cycles;
 } CpuAddressingModeResult;
 
+CpuAddressingModeResult immediate_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult absolute_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult absolute_x_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult absolute_y_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult zero_page_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult zero_page_x_offset_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult indirect_y_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult implied_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult accumulator_addressing_mode(const CpuState* cpu);
+CpuAddressingModeResult invalid_addressing_mode(const CpuState* cpu);
 
-CpuAddressingModeResult get_operand_with_immediate_addressing(const uint16_t pc, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_absolute_addressing(const uint16_t pc, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_absolute_x_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_absolute_y_addressing(const uint16_t pc, const uint8_t y_reg, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_zero_page_addressing(const uint16_t pc, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_zero_page_x_offset_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_zero_page_y_offset_addressing(const uint16_t pc, const uint8_t y_reg, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_relative_addressing(const uint16_t pc, const uint16_t* bus);
-CpuAddressingModeResult get_operand_with_indirect_x_addressing(const uint16_t pc, const uint8_t x_reg, const uint16_t* bus);
+typedef CpuAddressingModeResult (*AddrModeFptr)(const CpuState* cpu);
+extern const AddrModeFptr addr_mode_lookup[];
 
 #endif

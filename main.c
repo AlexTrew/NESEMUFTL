@@ -1,8 +1,7 @@
 # include "cpu.h"
+#include "cpu_state.h"
 # include "ppu.h"
-# include <stdlib.h>
 
-# include <stdio.h>
 # include <stdbool.h>
 
 /*
@@ -18,7 +17,7 @@ int main(){
     bus[i] = 0x16;
   }
 
-  Cpu* cpu = init_cpu(bus);
+  CpuState* cpu = init_cpu(bus);
   
   while(true){
     ++master_clock_cycle_count;

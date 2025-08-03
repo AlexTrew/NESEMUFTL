@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "cpu_addr_mode.h"
+#include "cpu_state.h"
 
 /*
   This is the cpu. we are emulating the MOS 6502. 
@@ -31,23 +32,6 @@ typedef enum {
   N = (1 << 7),
 } CpuStatusFlag;
 
-typedef enum{
-  ACCUM,
-  IMM,
-  ABSOLUTE,
-  ZP,
-  ZP_X,
-  ZP_Y,
-  ABS,
-  ABS_X,
-  ABS_Y,
-  IMPLIED,
-  RELATIVE,
-  IND_X,
-  IND_Y,
-  INDIRECT,
-  NONE
-} AddrMode;
 
 typedef enum {
   ADC,
@@ -110,88 +94,76 @@ typedef enum {
   ILLEGAL_INSTRUCTION
 } CpuInstructionName;
 
-
-typedef struct {
-  unsigned long cpu_cycle_count;
-  uint16_t pc; 
-  uint8_t a;
-  uint8_t x;
-  uint8_t y;
-  uint8_t stkptr;
-  uint8_t status;
-  uint16_t* bus; 
-} Cpu;
-
 typedef struct CpuInstruction{
   CpuInstructionName name;
   uint8_t mem_needed;
   uint8_t cycles_left;
-  // uint8_t (*instruction_func)(Cpu* cpu, const uint8_t operand);
-  // uint8_t (*addr_mode_func)(Cpu* cpu);
-  AddrMode addressing_mode;
+  CpuAddrMode addressing_mode;
 } CpuInstruction;
 
-Cpu *init_cpu(uint16_t* bus);
-void delete_cpu(Cpu* cpu);
 
-CpuInstruction* cpu_cycle(Cpu* cpu);
+CpuState *init_cpu(uint16_t* bus);
 
-uint8_t ADC_(Cpu* cpu, uint8_t operand);
-uint8_t AND_(Cpu* cpu, uint8_t operand);
-uint8_t ASL_(Cpu* cpu, uint8_t operand);
-uint8_t BCC_(Cpu* cpu, uint8_t operand);
-uint8_t BCS_(Cpu* cpu, uint8_t operand);
-uint8_t BEQ_(Cpu* cpu, uint8_t operand);
-uint8_t BIT_(Cpu* cpu, uint8_t operand);
-uint8_t BMI_(Cpu* cpu, uint8_t operand);
-uint8_t BNE_(Cpu* cpu, uint8_t operand);
-uint8_t BPL_(Cpu* cpu, uint8_t operand);
-uint8_t BRK_(Cpu* cpu, uint8_t operand);
-uint8_t BVC_(Cpu* cpu, uint8_t operand);
-uint8_t BVS_(Cpu* cpu, uint8_t operand);
-uint8_t CLC_(Cpu* cpu, uint8_t operand);
-uint8_t CLD_(Cpu* cpu, uint8_t operand);
-uint8_t CLI_(Cpu* cpu, uint8_t operand);
-uint8_t CLV_(Cpu* cpu, uint8_t operand);
-uint8_t CMP_(Cpu* cpu, uint8_t operand);
-uint8_t CPX_(Cpu* cpu, uint8_t operand);
-uint8_t CPY_(Cpu* cpu, uint8_t operand);
-uint8_t DEC_(Cpu* cpu, uint8_t operand);
-uint8_t DEX_(Cpu* cpu, uint8_t operand);
-uint8_t DEY_(Cpu* cpu, uint8_t operand);
-uint8_t EOR_(Cpu* cpu, uint8_t operand);
-uint8_t INC_(Cpu* cpu, uint8_t operand);
-uint8_t INX_(Cpu* cpu, uint8_t operand);
-uint8_t INY_(Cpu* cpu, uint8_t operand);
-uint8_t JMP_(Cpu* cpu, uint8_t operand);
-uint8_t JSR_(Cpu* cpu, uint8_t operand);
-uint8_t LDA_(Cpu* cpu, uint8_t operand);
-uint8_t LDX_(Cpu* cpu, uint8_t operand);
-uint8_t LDY_(Cpu* cpu, uint8_t operand);
-uint8_t LSR_(Cpu* cpu, uint8_t operand);
-uint8_t NOP_(Cpu* cpu, uint8_t operand);
-uint8_t ORA_(Cpu* cpu, uint8_t operand);
-uint8_t PHA_(Cpu* cpu, uint8_t operand);
-uint8_t PHP_(Cpu* cpu, uint8_t operand);
-uint8_t PLA_(Cpu* cpu, uint8_t operand);
-uint8_t PLP_(Cpu* cpu, uint8_t operand);
-uint8_t ROL_(Cpu* cpu, uint8_t operand);
-uint8_t ROR_(Cpu* cpu, uint8_t operand);
-uint8_t RTI_(Cpu* cpu, uint8_t operand);
-uint8_t RTS_(Cpu* cpu, uint8_t operand);
-uint8_t TRS_(Cpu* cpu, uint8_t operand);
-uint8_t SBC_(Cpu* cpu, uint8_t operand);
-uint8_t SEC_(Cpu* cpu, uint8_t operand);
-uint8_t SED_(Cpu* cpu, uint8_t operand);
-uint8_t SEI_(Cpu* cpu, uint8_t operand);
-uint8_t STA_(Cpu* cpu, uint8_t operand);
-uint8_t STX_(Cpu* cpu, uint8_t operand);
-uint8_t STY_(Cpu* cpu, uint8_t operand);
-uint8_t TAX_(Cpu* cpu, uint8_t operand);
-uint8_t TAY_(Cpu* cpu, uint8_t operand);
-uint8_t TSX_(Cpu* cpu, uint8_t operand);
-uint8_t TXA_(Cpu* cpu, uint8_t operand);
-uint8_t TXS_(Cpu* cpu, uint8_t operand);
-uint8_t TYA_(Cpu* cpu, uint8_t operand);
+void delete_cpu(CpuState* cpu);
+
+CpuInstruction* cpu_cycle(CpuState* cpu);
+
+uint8_t ADC_(CpuState* cpu, uint8_t operand);
+uint8_t AND_(CpuState* cpu, uint8_t operand);
+uint8_t ASL_(CpuState* cpu, uint8_t operand);
+uint8_t BCC_(CpuState* cpu, uint8_t operand);
+uint8_t BCS_(CpuState* cpu, uint8_t operand);
+uint8_t BEQ_(CpuState* cpu, uint8_t operand);
+uint8_t BIT_(CpuState* cpu, uint8_t operand);
+uint8_t BMI_(CpuState* cpu, uint8_t operand);
+uint8_t BNE_(CpuState* cpu, uint8_t operand);
+uint8_t BPL_(CpuState* cpu, uint8_t operand);
+uint8_t BRK_(CpuState* cpu, uint8_t operand);
+uint8_t BVC_(CpuState* cpu, uint8_t operand);
+uint8_t BVS_(CpuState* cpu, uint8_t operand);
+uint8_t CLC_(CpuState* cpu, uint8_t operand);
+uint8_t CLD_(CpuState* cpu, uint8_t operand);
+uint8_t CLI_(CpuState* cpu, uint8_t operand);
+uint8_t CLV_(CpuState* cpu, uint8_t operand);
+uint8_t CMP_(CpuState* cpu, uint8_t operand);
+uint8_t CPX_(CpuState* cpu, uint8_t operand);
+uint8_t CPY_(CpuState* cpu, uint8_t operand);
+uint8_t DEC_(CpuState* cpu, uint8_t operand);
+uint8_t DEX_(CpuState* cpu, uint8_t operand);
+uint8_t DEY_(CpuState* cpu, uint8_t operand);
+uint8_t EOR_(CpuState* cpu, uint8_t operand);
+uint8_t INC_(CpuState* cpu, uint8_t operand);
+uint8_t INX_(CpuState* cpu, uint8_t operand);
+uint8_t INY_(CpuState* cpu, uint8_t operand);
+uint8_t JMP_(CpuState* cpu, uint8_t operand);
+uint8_t JSR_(CpuState* cpu, uint8_t operand);
+uint8_t LDA_(CpuState* cpu, uint8_t operand);
+uint8_t LDX_(CpuState* cpu, uint8_t operand);
+uint8_t LDY_(CpuState* cpu, uint8_t operand);
+uint8_t LSR_(CpuState* cpu, uint8_t operand);
+uint8_t NOP_(CpuState* cpu, uint8_t operand);
+uint8_t ORA_(CpuState* cpu, uint8_t operand);
+uint8_t PHA_(CpuState* cpu, uint8_t operand);
+uint8_t PHP_(CpuState* cpu, uint8_t operand);
+uint8_t PLA_(CpuState* cpu, uint8_t operand);
+uint8_t PLP_(CpuState* cpu, uint8_t operand);
+uint8_t ROL_(CpuState* cpu, uint8_t operand);
+uint8_t ROR_(CpuState* cpu, uint8_t operand);
+uint8_t RTI_(CpuState* cpu, uint8_t operand);
+uint8_t RTS_(CpuState* cpu, uint8_t operand);
+uint8_t TRS_(CpuState* cpu, uint8_t operand);
+uint8_t SBC_(CpuState* cpu, uint8_t operand);
+uint8_t SEC_(CpuState* cpu, uint8_t operand);
+uint8_t SED_(CpuState* cpu, uint8_t operand);
+uint8_t SEI_(CpuState* cpu, uint8_t operand);
+uint8_t STA_(CpuState* cpu, uint8_t operand);
+uint8_t STX_(CpuState* cpu, uint8_t operand);
+uint8_t STY_(CpuState* cpu, uint8_t operand);
+uint8_t TAX_(CpuState* cpu, uint8_t operand);
+uint8_t TAY_(CpuState* cpu, uint8_t operand);
+uint8_t TSX_(CpuState* cpu, uint8_t operand);
+uint8_t TXA_(CpuState* cpu, uint8_t operand);
+uint8_t TXS_(CpuState* cpu, uint8_t operand);
+uint8_t TYA_(CpuState* cpu, uint8_t operand);
 
 #endif

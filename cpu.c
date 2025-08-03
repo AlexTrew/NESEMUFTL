@@ -1,4 +1,5 @@
 #include "cpu.h"
+#include "cpu_addr_mode.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -267,21 +268,22 @@ const CpuInstruction cpu_instruction_lookup[] = {
   [0xFF] = {.name=ILLEGAL_INSTRUCTION, .cycles_left=0, .mem_needed=0, .addressing_mode=NONE},
 };
 
+typedef uint8_t AddtionalInstructionCycles;
 
-static void process_instruction(Cpu* cpu, const CpuInstruction* instruction);
-static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v);
-static uint8_t cpu_read_from_bus(Cpu* cpu, const uint16_t addr);
-static void cpu_write(Cpu* cpu, const uint16_t addr, uint8_t data);
+static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction* instruction);
+static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
+static uint8_t cpu_read_from_bus(CpuState* cpu, const uint16_t addr);
+static void cpu_write(CpuState* cpu, const uint16_t addr, uint8_t data);
 
-static uint8_t cpu_read_from_bus(Cpu* cpu, const uint16_t addr){
+static uint8_t cpu_read_from_bus(CpuState* cpu, const uint16_t addr){
   return cpu->bus[addr];
 }
 
-static void cpu_write(Cpu* cpu, uint16_t addr, uint8_t data){
+static void cpu_write(CpuState* cpu, uint16_t addr, uint8_t data){
   cpu->bus[addr] = data;
 }
 
-static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
+static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
   if(v){
     cpu->status |= f;
   }
@@ -290,14 +292,15 @@ static void set_status_flag(Cpu* cpu, CpuStatusFlag f, bool v){
   }
 }
 
+static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction* instruction){
+  CpuAddressingModeResult addr_mode_data;
+  addr_mode_data = addr_mode_lookup[instruction->addressing_mode](cpu);
 
-static void process_instruction(Cpu* cpu, const CpuInstruction* instruction){
-  //  uint8_t operand = instruction->addr_mode_func(cpu);
-  //instruction->instruction_func(cpu, operand);
+  return addr_mode_data.additional_cycles;
 }
 
-Cpu *init_cpu(uint16_t* memory){
-  Cpu* cpu_ptr = (Cpu*)malloc(sizeof(Cpu));
+CpuState* init_cpu(uint16_t* memory){
+  CpuState* cpu_ptr = (CpuState*)malloc(sizeof(CpuState));
   cpu_ptr->a=0x00;
   cpu_ptr->x=0x00;
   cpu_ptr->y=0x00;
@@ -309,11 +312,11 @@ Cpu *init_cpu(uint16_t* memory){
   return cpu_ptr;
 };
 
-void delete_cpu(Cpu *cpu){
+void delete_cpu(CpuState*cpu){
   free(cpu);
 }
 
-CpuInstruction* cpu_cycle(Cpu* cpu){
+CpuInstruction* cpu_cycle(CpuState* cpu){
   static CpuInstruction* current_instruction_ptr = NULL;
 
   /* check if the current instruction is complete.
@@ -334,7 +337,8 @@ CpuInstruction* cpu_cycle(Cpu* cpu){
       printf("illegal instruction (opcode %d)\n", opcode);
     }
     else {
-      process_instruction(cpu, current_instruction_ptr);
+      AddtionalInstructionCycles extra_cycles = process_instruction(cpu, current_instruction_ptr);
+      current_instruction_ptr->cycles_left+= extra_cycles;
     }
   }
 
