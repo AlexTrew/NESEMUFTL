@@ -7,7 +7,6 @@
 typedef enum{
   ACCUM,
   IMM,
-  ABSOLUTE,
   ZP,
   ZP_X,
   ZP_Y,

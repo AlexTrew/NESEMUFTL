@@ -129,7 +129,7 @@ START_TEST(test_absolute_adc_command) {
     bus[0xDDDD] = 0x01;
     cpu->pc = 0x00FD;
 
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABSOLUTE]);
+    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABS]);
     ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
 }
 END_TEST
