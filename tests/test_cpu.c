@@ -12,6 +12,9 @@
 uint8_t bus[0xFFFF];
 CpuState* cpu;
 
+/*
+ * Fixtures
+ */
 void setup(void){
     for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
 	bus[i] = 0x16;
@@ -23,6 +26,9 @@ void teardown(void){
     delete_cpu(cpu);
 }
 
+/*
+ * Addressing mode tests
+ */
 START_TEST(test_immediate_addressing_mode){
     bus[0x00FE] = 0x15;
     bus[0x00FF] = 0x16;
@@ -111,6 +117,9 @@ START_TEST(test_zpy_addressing_mode){
 }
 END_TEST
 
+/*
+ * Instruction lookup tests
+ */
 START_TEST(lookup_cpu_instruction_from_opcode){
 
     CpuInstruction* result = cpu_cycle(cpu);
@@ -121,6 +130,9 @@ START_TEST(lookup_cpu_instruction_from_opcode){
 }
 END_TEST
 
+/*
+ * Instruction logic tests
+ */
 START_TEST(test_absolute_adc_command) {
     // Operand location
     bus[0x00FE] = 0xDD;
@@ -133,6 +145,28 @@ START_TEST(test_absolute_adc_command) {
     ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
 }
 END_TEST
+
+/*
+ * E2E instruction tests
+ */
+START_TEST(test_load_and_execute_abs_adc_command) {
+    // Arrange
+    // ADC instruction in absolute mode
+    bus[0x00FD] = 0x6D;
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+    // Operand
+    bus[0xDDDD] = 0x01;
+
+    cpu->pc = 0x00FC;
+
+    // Act
+    const CpuInstruction* instruction = cpu_cycle(cpu);
+    const CpuState s = ADC_(*cpu, addr_mode_lookup[instruction->addressing_mode]);
+
+    // Assert
+    ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
+}
 
 Suite* make_cpu_tests(void){
   Suite *s = suite_create("cpu instruction lookup test suite");
@@ -148,6 +182,7 @@ Suite* make_cpu_tests(void){
   tcase_add_test(tc, test_zpx_addressing_mode);
   tcase_add_test(tc, test_zpy_addressing_mode);
     tcase_add_test(tc, test_absolute_adc_command);
+    tcase_add_test(tc, test_load_and_execute_abs_adc_command);
 
   suite_add_tcase(s, tc);
 
