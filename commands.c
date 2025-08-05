@@ -6,7 +6,7 @@ CpuState ADC_(CpuState cpu, const AddrModeFptr addr_mode_func) {
     if (result > 0xFF) {
         cpu.a = 0xFF;
         // Overflow - set carry bit
-        cpu.p = cpu.p | (1 << 7);
+        cpu.p = cpu.p | (1 << 0);
     } else {
         cpu.a = result;
     }
