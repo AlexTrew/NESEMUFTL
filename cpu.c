@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "commands.h"
+#include "cpu_state.h"
 
 /*
   See page 10 of archive.6502.org/datasheets/rockwell_r650x_r651x.pdf for a
@@ -270,14 +271,12 @@ const CpuInstruction cpu_instruction_lookup[] = {
 
 typedef uint8_t AddtionalInstructionCycles;
 
-static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction* instruction);
+static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction);
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t cpu_read_from_bus(CpuState* cpu, const uint16_t addr);
 static void cpu_write(CpuState* cpu, const uint16_t addr, uint8_t data);
 
-static uint8_t cpu_read_from_bus(CpuState* cpu, const uint16_t addr){
-  return cpu->bus[addr];
-}
+  
 
 static void cpu_write(CpuState* cpu, uint16_t addr, uint8_t data){
   cpu->bus[addr] = data;
@@ -292,9 +291,9 @@ static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
   }
 }
 
-static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction* instruction){
+static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction){
   CpuAddressingModeResult addr_mode_data;
-  addr_mode_data = addr_mode_lookup[instruction->addressing_mode](cpu);
+  addr_mode_data = addr_mode_lookup[instruction.addressing_mode](cpu);
 
   return addr_mode_data.additional_cycles;
 }
@@ -317,42 +316,32 @@ void delete_cpu(CpuState*cpu){
   free(cpu);
 }
 
-CpuInstruction* cpu_cycle(CpuState* cpu){
-  static CpuInstruction* current_instruction_ptr = NULL;
+CpuInstruction get_instruction(const CpuState* cpu){
+    uint8_t opcode = cpu->bus[cpu->pc];
 
-  /* check if the current instruction is complete.
-     if so, clean it up! */
-  if(current_instruction_ptr && current_instruction_ptr->cycles_left == 0){
-    free(current_instruction_ptr);
-    current_instruction_ptr = NULL;
-  }
-  
-  // If there is no active instruction, look one up using the op code pointed to by the
-  // program counter.
-  if(current_instruction_ptr == NULL){
-    uint8_t opcode = cpu_read_from_bus(cpu, cpu->pc);
-    current_instruction_ptr = (CpuInstruction*)malloc(sizeof(CpuInstruction));
-
-    memcpy(current_instruction_ptr, &cpu_instruction_lookup[opcode], sizeof(CpuInstruction));
-    if(current_instruction_ptr->name == ILLEGAL_INSTRUCTION){
+    CpuInstruction current_instruction = cpu_instruction_lookup[opcode];
+    if(current_instruction.name == ILLEGAL_INSTRUCTION){
       printf("illegal instruction (opcode %d)\n", opcode);
     }
-    else {
-      AddtionalInstructionCycles extra_cycles = process_instruction(cpu, current_instruction_ptr);
-      current_instruction_ptr->cycles_left+= extra_cycles;
-    }
-  }
 
-  /* If there is, do nothing until the clock cycles go to zero. In this emulator, at least for now,
-   instructions are exectued in a single cpu iteration: the remaining cycles for the instruction are
-   simply so the timings are correct.*/
+    return current_instruction;
+}
+
+void cpu_cycle(CpuState* cpu){
+  /* Load an instruction from an opcode and execute it.
+
+   In this emulator, at least for now, instructions are exectued in a single cpu iteration:
+   we do nothing for the remaining cycles for the instruction so the timings are correct. */
+
+  static uint8_t cycles_until_next_instruction = 0;
+  if(cycles_until_next_instruction == 0){
+    CpuInstruction current_instruction = get_instruction(cpu);
+    AddtionalInstructionCycles extra_cycles = process_instruction(cpu, current_instruction);
+    cycles_until_next_instruction += current_instruction.cycles_left + extra_cycles;
+  }
   else{
-    --current_instruction_ptr->cycles_left;
+    --cycles_until_next_instruction;
   }
-
   // Increment the program counter.
   ++cpu->pc;
-
-  // return the current instruction pointer for debugging purposes
-  return current_instruction_ptr; 
 }
