@@ -147,7 +147,7 @@ Suite* make_cpu_tests(void){
   tcase_add_test(tc, test_zp_addressing_mode);
   tcase_add_test(tc, test_zpx_addressing_mode);
   tcase_add_test(tc, test_zpy_addressing_mode);
-    tcase_add_test(tc, test_absolute_adc_command);
+  tcase_add_test(tc, test_absolute_adc_command);
 
   suite_add_tcase(s, tc);
 
