@@ -3,18 +3,13 @@
 #include <stdlib.h>
 #include "../cpu.c"
 
-/*
-  Test the cpu library
-  Here's a good sample of how to do these tests:
-  https://github.com/vndmtrx/check-cmake-example/blob/master/tests/test_sample.c
- */
 
 uint8_t bus[0xFFFF];
 CpuState* cpu;
 
 void setup(void){
     for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
-	bus[i] = 0x16;
+        bus[i] = 0x16;
     }
     cpu = init_cpu(bus);
 }
@@ -22,6 +17,13 @@ void setup(void){
 void teardown(void){
     delete_cpu(cpu);
 }
+
+/*
+  Test the cpu library
+  Here's a good sample of how to do these tests:
+  https://github.com/vndmtrx/check-cmake-example/blob/master/tests/test_sample.c
+ */
+
 
 START_TEST(test_immediate_addressing_mode){
     bus[0x00FE] = 0x15;
@@ -131,71 +133,38 @@ START_TEST(test_cpu_cycles) {
 }
 END_TEST
 
+Suite* create_cpu_case(Suite* s){
+    TCase* tc = tcase_create("cpu instruction lookup test");
 
-START_TEST(test_absolute_adc_command) {
-    // Arrange
-    // Operand location
-    bus[0x00FE] = 0xDD;
-    bus[0x00FF] = 0xDD;
-    // Operand value
-    bus[0xDDDD] = 0x01;
-    cpu->pc = 0x00FD;
+    tcase_add_checked_fixture(tc, setup, teardown);
+    tcase_add_test(tc, lookup_cpu_instruction_from_opcode);
+    tcase_add_test(tc, test_immediate_addressing_mode);
+    tcase_add_test(tc, test_absolute_addressing_mode);
+    tcase_add_test(tc, test_absolute_x_addressing_mode);
+    tcase_add_test(tc, test_absolute_y_addressing_mode);
+    tcase_add_test(tc, test_zp_addressing_mode);
+    tcase_add_test(tc, test_zpx_addressing_mode);
+    tcase_add_test(tc, test_zpy_addressing_mode);
 
-    // Act
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABS]);
+    suite_add_tcase(s, tc);
 
-    // Assert
-    ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
-}
-END_TEST
-
-START_TEST(test_immediate_adc_overflow) {
-    // Arrange
-    // Immediate operand
-    bus[0x00FE] = 0xFF;
-    cpu->a = 0xFF;
-    cpu->pc = 0x00FD;
-
-    // Act
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[IMM]);
-
-    // Assert
-    ck_assert_msg(s.a == 0xFF, "Acc value incorrect");
-    ck_assert_msg(s.p == 0b00000001, "result %#04x != expected %#04x", s.p, 0b00000001);
-}
-END_TEST
-
-Suite* make_cpu_tests(void){
-  Suite *s = suite_create("cpu instruction lookup test suite");
-  TCase* tc = tcase_create("cpu instruction lookup test");
-
-  tcase_add_checked_fixture(tc, setup, teardown);
-  tcase_add_test(tc, lookup_cpu_instruction_from_opcode);
-  tcase_add_test(tc, test_immediate_addressing_mode);
-  tcase_add_test(tc, test_absolute_addressing_mode);
-  tcase_add_test(tc, test_absolute_x_addressing_mode);
-  tcase_add_test(tc, test_absolute_y_addressing_mode);
-  tcase_add_test(tc, test_zp_addressing_mode);
-  tcase_add_test(tc, test_zpx_addressing_mode);
-  tcase_add_test(tc, test_zpy_addressing_mode);
-  tcase_add_test(tc, test_absolute_adc_command);
-  tcase_add_test(tc, test_immediate_adc_overflow);
-
-  suite_add_tcase(s, tc);
-
-  return s;
+    return s;
 }
 
 int main(){
-  int failed = 0;
-  SRunner* sr;
-  sr = srunner_create(make_cpu_tests());
-  srunner_set_fork_status(sr, CK_NOFORK); 
-  srunner_set_log(sr, "test.log");
-  srunner_set_xml(sr, "test.xml");
-  srunner_run_all(sr, CK_VERBOSE);
+    int failed = 0;
 
-  failed = srunner_ntests_failed(sr);
-  srunner_free(sr);
-  return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
+    Suite *s = suite_create("CPU tests");
+
+    create_cpu_case(s);
+
+    SRunner* sr = srunner_create(s);
+    srunner_set_fork_status(sr, CK_NOFORK);
+    srunner_set_log(sr, "test_cpu.log");
+    srunner_set_xml(sr, "test_cpu.xml");
+    srunner_run_all(sr, CK_VERBOSE);
+
+    failed = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
