@@ -1,4 +1,4 @@
-#include "../commands.h"
+#include "../instructions.h"
 #include <check.h>
 #include "../cpu.c"
 
@@ -16,7 +16,7 @@ void teardown(void) {
     delete_cpu(cpu);
 }
 
-START_TEST(test_absolute_adc_command) {
+START_TEST(test_absolute_adc_instruction) {
     // Arrange
     // Operand location
     bus[0x00FE] = 0xDD;
@@ -53,7 +53,7 @@ Suite* create_instruction_case(Suite* s){
     TCase* tc = tcase_create("Instruction tests");
 
     tcase_add_checked_fixture(tc, setup, teardown);
-    tcase_add_test(tc, test_absolute_adc_command);
+    tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_immediate_adc_overflow);
 
     suite_add_tcase(s, tc);

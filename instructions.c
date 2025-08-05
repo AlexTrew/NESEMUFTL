@@ -1,4 +1,4 @@
-#include "commands.h"
+#include "instructions.h"
 
 CpuState ADC_(CpuState cpu, const AddrModeFptr addr_mode_func) {
     const CpuAddressingModeResult address_mode = addr_mode_func(&cpu);
