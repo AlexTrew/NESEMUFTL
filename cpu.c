@@ -304,6 +304,7 @@ CpuState* init_cpu(uint8_t* memory){
   cpu_ptr->a=0x00;
   cpu_ptr->x=0x00;
   cpu_ptr->y=0x00;
+  cpu_ptr->p=0x00;
   cpu_ptr->pc=0x0001;
   cpu_ptr->stkptr=0x00;
   cpu_ptr->status=0x00;

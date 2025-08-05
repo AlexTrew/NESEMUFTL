@@ -9,6 +9,8 @@ typedef struct {
   uint8_t a;
   uint8_t x;
   uint8_t y;
+  // Flags
+  uint8_t p;
   uint8_t stkptr;
   uint8_t status;
   uint8_t* bus; 
