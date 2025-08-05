@@ -112,14 +112,25 @@ START_TEST(test_zpy_addressing_mode){
 END_TEST
 
 START_TEST(lookup_cpu_instruction_from_opcode){
+    CpuInstruction result = get_instruction(cpu);
+    ck_assert(result.name == ASL);
+    ck_assert(result.cycles_left == 6);
+    ck_assert(result.addressing_mode == ZP);
+}
+END_TEST
 
-    CpuInstruction* result = cpu_cycle(cpu);
-    ck_assert(result->name == ASL);
-    ck_assert(result->cycles_left == 6);
-    ck_assert(result->addressing_mode == ZP);
+START_TEST(test_cpu_cycles) {
+    // Operand location
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+    // Operand value
+    bus[0xDDDD] = 0x01;
+    cpu->pc = 0x00FD;
+
 
 }
 END_TEST
+
 
 START_TEST(test_absolute_adc_command) {
     // Operand location

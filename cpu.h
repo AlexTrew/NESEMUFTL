@@ -106,6 +106,6 @@ CpuState *init_cpu(uint8_t* bus);
 
 void delete_cpu(CpuState* cpu);
 
-CpuInstruction* cpu_cycle(CpuState* cpu);
+void cpu_cycle(CpuState* cpu);
 
 #endif
