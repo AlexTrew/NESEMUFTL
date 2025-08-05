@@ -317,14 +317,14 @@ void delete_cpu(CpuState*cpu){
 }
 
 CpuInstruction get_instruction(const CpuState* cpu){
-    uint8_t opcode = cpu->bus[cpu->pc];
+  uint8_t opcode = cpu->bus[cpu->pc];
 
-    CpuInstruction current_instruction = cpu_instruction_lookup[opcode];
-    if(current_instruction.name == ILLEGAL_INSTRUCTION){
-      printf("illegal instruction (opcode %d)\n", opcode);
-    }
+  CpuInstruction current_instruction = cpu_instruction_lookup[opcode];
+  if(current_instruction.name == ILLEGAL_INSTRUCTION){
+    printf("illegal instruction (opcode %d)\n", opcode);
+  }
 
-    return current_instruction;
+  return current_instruction;
 }
 
 void cpu_cycle(CpuState* cpu){
