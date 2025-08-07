@@ -42,7 +42,6 @@ CpuAddressingModeResult zero_page_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult zero_page_x_offset_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu);
-CpuAddressingModeResult absolute_indexed_indirect_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult indirect_y_addressing_mode(const CpuState* cpu);
 CpuAddressingModeResult implied_addressing_mode(const CpuState* cpu);
