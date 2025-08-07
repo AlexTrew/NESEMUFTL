@@ -88,6 +88,21 @@ START_TEST(test_zp_addressing_mode){
 }
 END_TEST
 
+START_TEST(test_ind_x_addressing_mode){
+    bus[0x0001] = 0x00;
+    bus[0x0002] = 0x05;
+    bus[0x0003] = 0x07;
+    bus[0x0705] = 0x25;
+
+    cpu->x = 0x01;
+    cpu->pc = 0x0000;
+
+    CpuAddressingModeResult res = indirect_x_addressing_mode(cpu);
+    uint16_t expected = 0x0705;
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+}
+END_TEST
+
 START_TEST(test_zpx_addressing_mode){
     bus[0x00FD] = 0x15;
     bus[0x00FE] = 0xa0;
@@ -121,18 +136,6 @@ START_TEST(lookup_cpu_instruction_from_opcode){
 }
 END_TEST
 
-START_TEST(test_cpu_cycles) {
-    // Operand location
-    bus[0x00FE] = 0xDD;
-    bus[0x00FF] = 0xDD;
-    // Operand value
-    bus[0xDDDD] = 0x01;
-    cpu->pc = 0x00FD;
-
-
-}
-END_TEST
-
 Suite* create_cpu_case(Suite* s){
     TCase* tc = tcase_create("cpu instruction lookup test");
 
@@ -145,6 +148,7 @@ Suite* create_cpu_case(Suite* s){
     tcase_add_test(tc, test_zp_addressing_mode);
     tcase_add_test(tc, test_zpx_addressing_mode);
     tcase_add_test(tc, test_zpy_addressing_mode);
+    tcase_add_test(tc, test_ind_x_addressing_mode);
 
     suite_add_tcase(s, tc);
 
