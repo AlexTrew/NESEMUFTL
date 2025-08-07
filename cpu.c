@@ -273,7 +273,6 @@ typedef uint8_t AddtionalInstructionCycles;
 
 static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction);
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
-static uint8_t cpu_read_from_bus(CpuState* cpu, const uint16_t addr);
 static void cpu_write(CpuState* cpu, const uint16_t addr, uint8_t data);
 
   
