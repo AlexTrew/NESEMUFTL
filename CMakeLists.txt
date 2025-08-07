@@ -6,7 +6,7 @@ project(nesemuftl)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Show all warning messages
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -g")
 
 file(GLOB SOURCES
   main.c

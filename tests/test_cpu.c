@@ -103,6 +103,34 @@ START_TEST(test_ind_x_addressing_mode){
 }
 END_TEST
 
+START_TEST(test_ind_y_addressing_mode){
+    bus[0x0000] = 0x00;
+    bus[0x0001] = 0x03;
+    bus[0x0002] = 0x07;
+
+    cpu->y = 0x01;
+    cpu->pc = 0x0000;
+
+    CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
+    uint16_t expected = 0x0704;
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+}
+END_TEST
+
+START_TEST(test_ind_y_addressing_mode_with_carry){
+    bus[0x0000] = 0x00;
+    bus[0x0001] = 0x03;
+    bus[0x0002] = 0x07;
+
+    cpu->y = 0xFF;
+    cpu->pc = 0x0000;
+
+    CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
+    uint16_t expected = 0x0802;
+    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+}
+END_TEST
+
 START_TEST(test_zpx_addressing_mode){
     bus[0x00FD] = 0x15;
     bus[0x00FE] = 0xa0;
@@ -149,6 +177,8 @@ Suite* create_cpu_case(Suite* s){
     tcase_add_test(tc, test_zpx_addressing_mode);
     tcase_add_test(tc, test_zpy_addressing_mode);
     tcase_add_test(tc, test_ind_x_addressing_mode);
+    tcase_add_test(tc, test_ind_y_addressing_mode);
+    tcase_add_test(tc, test_ind_y_addressing_mode_with_carry);
 
     suite_add_tcase(s, tc);
 

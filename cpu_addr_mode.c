@@ -71,14 +71,14 @@ CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu){
 
 CpuAddressingModeResult indirect_y_addressing_mode(const CpuState* cpu){
   uint16_t lo = cpu->bus[cpu->pc+1] + cpu->y;
-  uint16_t carry = lo - 0xFF; 
-  lo &= 0x00FF;
+  uint8_t carry = 0;
 
-  if(carry <= 0){
-    carry = 0;
+  if(lo > 0xFF){
+    carry = 1;
+    lo &= 0x00FF;
   }
 
-  uint16_t hi = cpu->bus[cpu->pc+2] + carry; 
+  uint16_t hi = (cpu->bus[cpu->pc+2] + carry) & 0x00FF; 
   uint16_t addr = (hi << 8 | lo);
   CpuAddressingModeResult res = {.operand=addr, .pc_offset=2, .additional_cycles=0};
   return res;
