@@ -11,7 +11,7 @@
   See page 10 of archive.6502.org/datasheets/rockwell_r650x_r651x.pdf for a
   complete opcode -> instruction reference.
  */  
-const CpuInstruction cpu_instruction_lookup[] = {
+const CpuInstruction opcode_x_cpu_instruction_lookup[] = {
   [0x00] = {.name=BRK, .cycles_left=7, .mem_needed=1, .addressing_mode=IMPLIED},
   [0x01] = {.name=ORA, .cycles_left=5, .mem_needed=2, .addressing_mode=IND_X},
   [0x02] = {.name=ILLEGAL_INSTRUCTION, .cycles_left=0, .mem_needed=0, .addressing_mode=NONE},
@@ -319,7 +319,7 @@ void delete_cpu(CpuState*cpu){
 CpuInstruction get_instruction(const CpuState* cpu){
   uint8_t opcode = cpu->bus[cpu->pc];
 
-  CpuInstruction current_instruction = cpu_instruction_lookup[opcode];
+  CpuInstruction current_instruction = opcode_x_cpu_instruction_lookup[opcode];
   if(current_instruction.name == ILLEGAL_INSTRUCTION){
     printf("illegal instruction (opcode %d)\n", opcode);
   }

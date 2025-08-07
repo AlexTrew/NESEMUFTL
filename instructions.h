@@ -5,6 +5,68 @@
 #include "cpu_addr_mode.h"
 #include "cpu_state.h"
 
+typedef enum {
+  ADC,
+  AND,
+  ASL,
+  BCC,
+  BCS,
+  BEQ,
+  BIT,
+  BMI,
+  BNE,
+  BPL,
+  BRK,
+  BVC,
+  BVS,
+  CLC,
+  CLD,
+  CLI,
+  CLV,
+  CMP,
+  CPX,
+  CPY,
+  DEC,
+  DEX,
+  DEY,
+  EOR,
+  INC,
+  INX,
+  INY,
+  JMP,
+  JSR,
+  LDA,
+  LDX,
+  LDY,
+  LSR,
+  NOP,
+  ORA,
+  PHA,
+  PHP,
+  PLA,
+  PLP,
+  ROL,
+  ROR,
+  RTI,
+  RTS,
+  TRS,
+  SBC,
+  SEC,
+  SED,
+  SEI,
+  STA,
+  STX,
+  STY,
+  TAX,
+  TAY,
+  TSX,
+  TXA,
+  TXS,
+  TYA,
+  ILLEGAL_INSTRUCTION
+} CpuInstructionName;
+
+
 CpuState ADC_(const CpuState, AddrModeFptr addr_mode_func);
 CpuState AND_(const CpuState, AddrModeFptr addr_mode_func);
 CpuState ASL_(const CpuState, AddrModeFptr addr_mode_func);
@@ -62,4 +124,10 @@ CpuState TSX_(const CpuState, AddrModeFptr addr_mode_func);
 CpuState TXA_(const CpuState, AddrModeFptr addr_mode_func);
 CpuState TXS_(const CpuState, AddrModeFptr addr_mode_func);
 CpuState TYA_(const CpuState, AddrModeFptr addr_mode_func);
+CpuState ILLEGAL_INSTRUCTION_(const CpuState, AddrModeFptr addr_mode_func);
+
+
+typedef CpuState (*CpuInstructionFPtr)(const CpuState cpu, const AddrModeFptr addr_mode_func);
+extern const CpuInstructionFPtr cpu_instruction_lookup[];
+
 #endif

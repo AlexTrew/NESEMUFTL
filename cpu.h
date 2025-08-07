@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "cpu_addr_mode.h"
+#include "instructions.h"
 #include "cpu_state.h"
 
 /*
@@ -33,66 +34,6 @@ typedef enum {
 } CpuStatusFlag;
 
 
-typedef enum {
-  ADC,
-  AND,
-  ASL,
-  BCC,
-  BCS,
-  BEQ,
-  BIT,
-  BMI,
-  BNE,
-  BPL,
-  BRK,
-  BVC,
-  BVS,
-  CLC,
-  CLD,
-  CLI,
-  CLV,
-  CMP,
-  CPX,
-  CPY,
-  DEC,
-  DEX,
-  DEY,
-  EOR,
-  INC,
-  INX,
-  INY,
-  JMP,
-  JSR,
-  LDA,
-  LDX,
-  LDY,
-  LSR,
-  NOP,
-  ORA,
-  PHA,
-  PHP,
-  PLA,
-  PLP,
-  ROL,
-  ROR,
-  RTI,
-  RTS,
-  TRS,
-  SBC,
-  SEC,
-  SED,
-  SEI,
-  STA,
-  STX,
-  STY,
-  TAX,
-  TAY,
-  TSX,
-  TXA,
-  TXS,
-  TYA,
-  ILLEGAL_INSTRUCTION
-} CpuInstructionName;
 
 typedef struct CpuInstruction{
   CpuInstructionName name;
