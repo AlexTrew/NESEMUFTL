@@ -33,19 +33,24 @@ START_TEST(test_absolute_adc_instruction) {
 }
 END_TEST
 
-START_TEST(test_immediate_adc_overflow) {
+START_TEST(test_absolute_adc_instruction_with_overflow) {
     // Arrange
-    // Immediate operand
-    bus[0x00FE] = 0xFF;
-    cpu->a = 0xFF;
+    // Operand location
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+
+    // Operand value
+    bus[0xDDDD] = 0xFF;
     cpu->pc = 0x00FD;
+    cpu->a = 0x02;
 
     // Act
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[IMM]);
+    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABS]);
 
     // Assert
-    ck_assert_msg(s.a == 0xFF, "Acc value incorrect");
-    ck_assert_msg(s.p == 0b00000001, "result %#04x != expected %#04x", s.p, 0b00000001);
+    ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
+    ck_assert_msg(s.p == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
+
 }
 END_TEST
 
@@ -54,7 +59,7 @@ Suite* create_instruction_case(Suite* s){
 
     tcase_add_checked_fixture(tc, setup, teardown);
     tcase_add_test(tc, test_absolute_adc_instruction);
-    tcase_add_test(tc, test_immediate_adc_overflow);
+    tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
 
     suite_add_tcase(s, tc);
 

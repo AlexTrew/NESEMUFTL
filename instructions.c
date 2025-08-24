@@ -5,18 +5,21 @@
 
 CpuState ADC_(CpuState cpu, const AddrModeFptr addr_mode_func) {
   const CpuAddressingModeResult address_mode = addr_mode_func(&cpu);
-  const uint16_t result = cpu.a + cpu.bus[address_mode.operand];
+  uint16_t result = cpu.a + cpu.bus[address_mode.operand];
     if (result > 0xFF) {
-      cpu.a = 0xFF;
       // Overflow - set carry bit
       cpu.p = cpu.p | (1 << 0);
+      cpu.a = result & 0xFF;
     } else {
       cpu.a = result;
     }
     return cpu;
 }
 
-CpuState AND_(const CpuState, AddrModeFptr addr_mode_func){assert(false); /* not implemented */};
+CpuState AND_(const CpuState, AddrModeFptr addr_mode_func) {
+    
+};
+
 CpuState ASL_(const CpuState, AddrModeFptr addr_mode_func){assert(false); /* not implemented */};
 CpuState BCC_(const CpuState, AddrModeFptr addr_mode_func){assert(false); /* not implemented */};
 CpuState BCS_(const CpuState, AddrModeFptr addr_mode_func){assert(false); /* not implemented */};
