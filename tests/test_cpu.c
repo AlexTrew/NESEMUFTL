@@ -9,7 +9,7 @@ CpuState* cpu;
 
 void setup(void){
     for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
-        bus[i] = 0x16;
+        bus[i] = 0x00;
     }
     cpu = init_cpu(bus);
 }
@@ -27,11 +27,11 @@ void teardown(void){
 
 START_TEST(test_immediate_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
+    bus[0x00FF] = 0xFF;
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = immediate_addressing_mode(cpu);
-    uint8_t expected = 0x16;
+    uint8_t expected = 0xFF;
     ck_assert_msg(res.operand == expected, "result %#02x != expected %#02x", res.operand, expected);
 
 }
@@ -157,7 +157,11 @@ START_TEST(test_zpy_addressing_mode){
 END_TEST
 
 START_TEST(lookup_cpu_instruction_from_opcode){
+    cpu->pc = 0x0001;
+    bus[0x0001] = 0x16;
+
     CpuInstruction result = get_instruction(cpu);
+
     ck_assert(result.name == ASL);
     ck_assert(result.cycles_left == 6);
     ck_assert(result.addressing_mode == ZP);

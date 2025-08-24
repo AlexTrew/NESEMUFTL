@@ -7,7 +7,7 @@ CpuState* cpu;
 
 void setup(void) {
     for(uint16_t i=0;i<sizeof(bus)/sizeof(bus[0]);i++){
-        bus[i] = 0x16;
+        bus[i] = 0x00;
     }
     cpu = init_cpu(bus);
 }
