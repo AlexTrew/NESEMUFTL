@@ -7,78 +7,77 @@
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 
-CpuState ADC_(CpuState cpu, const uint16_t operand) {
-  uint16_t result = cpu.a + cpu.bus[operand];
+void ADC_(CpuState* cpu, const uint16_t operand) {
+  uint16_t result = cpu->a + cpu->bus[operand];
     if (result > 0xFF) {
       // Overflow - set carry bit
-      set_status_flag(&cpu, C, true);
-      cpu.a = result & 0xFF;
+      set_status_flag(cpu, C, true);
+      cpu->a = result & 0xFF;
     } else {
-      cpu.a = result;
+      cpu->a = result;
     }
-    return cpu;
 }
 
-CpuState AND_(const CpuState, const uint16_t operand) {
+void AND_(CpuState* cpu, const uint16_t operand) {
     
 };
 
-CpuState ASL_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BCC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BCS_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BEQ_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BIT_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BMI_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BNE_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BPL_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BRK_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BVC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState BVS_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CLC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CLD_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CLI_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CLV_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CMP_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CPX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState CPY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState DEC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState DEX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState DEY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState EOR_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState INC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState INX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState INY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState JMP_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState JSR_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState LDA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState LDX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState LDY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState LSR_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState NOP_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState ORA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState PHA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState PHP_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState PLA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState PLP_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState ROL_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState ROR_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState RTI_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState RTS_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TRS_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState SBC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState SEC_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState SED_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState SEI_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState STA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState STX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState STY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TAX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TAY_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TSX_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TXA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TXS_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState TYA_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
-CpuState ILLEGAL_INSTRUCTION_(const CpuState, const uint16_t operand){assert(false); /* not implemented */};
+void ASL_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BCC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BCS_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BEQ_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BIT_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BMI_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BNE_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BPL_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BRK_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BVC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void BVS_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CLC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CLD_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CLI_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CLV_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CMP_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CPX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void CPY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void DEC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void DEX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void DEY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void EOR_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void INC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void INX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void INY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void JMP_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void JSR_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void LDA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void LDX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void LDY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void LSR_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void NOP_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void ORA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void PHA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void PHP_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void PLA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void PLP_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void ROL_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void ROR_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void RTI_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void RTS_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TRS_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void SBC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void SEC_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void SED_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void SEI_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void STA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void STX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void STY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TAX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TAY_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TSX_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TXA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TXS_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void TYA_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
+void ILLEGAL_INSTRUCTION_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
 
 
 const CpuInstructionFPtr cpu_instruction_lookup[] = {

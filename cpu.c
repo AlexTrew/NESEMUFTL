@@ -311,7 +311,8 @@ void cpu_cycle(CpuState* cpu){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[current_instruction.addressing_mode](cpu);
 
     // execute the instruction, updating the state of the cpu
-    *cpu = cpu_instruction_lookup[current_instruction.name](*cpu, addr_mode_data.operand);
+    CpuInstructionFPtr instruction_func = cpu_instruction_lookup[current_instruction.name];
+    instruction_func(cpu, addr_mode_data.operand);
     
     // set the number of cycles until the next instruction is loaded
     cycles_until_next_instruction += current_instruction.cycles_left + addr_mode_data.additional_cycles;
