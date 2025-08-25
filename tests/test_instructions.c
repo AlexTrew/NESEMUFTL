@@ -25,8 +25,10 @@ START_TEST(test_absolute_adc_instruction) {
     bus[0xDDDD] = 0x01;
     cpu->pc = 0x00FD;
 
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[ABS](cpu);
+
     // Act
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABS]);
+    const CpuState s = ADC_(*cpu, addr_mode_data.operand);
 
     // Assert
     ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);
@@ -44,8 +46,10 @@ START_TEST(test_absolute_adc_instruction_with_overflow) {
     cpu->pc = 0x00FD;
     cpu->a = 0x02;
 
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[ABS](cpu);
+
     // Act
-    const CpuState s = ADC_(*cpu, addr_mode_lookup[ABS]);
+    const CpuState s = ADC_(*cpu, addr_mode_data.operand);
 
     // Assert
     ck_assert_msg(s.a == 0x01, "result %#04x != expected %#04x", s.a, 0x01);

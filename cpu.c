@@ -269,15 +269,6 @@ const CpuInstruction opcode_x_cpu_instruction_lookup[] = {
   [0xFF] = {.name=ILLEGAL_INSTRUCTION, .cycles_left=0, .mem_needed=0, .addressing_mode=NONE},
 };
 
-typedef uint8_t AddtionalInstructionCycles;
-
-static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction){
-  CpuAddressingModeResult addr_mode_data;
-  addr_mode_data = addr_mode_lookup[instruction.addressing_mode](cpu);
-
-  return addr_mode_data.additional_cycles;
-}
-
 CpuState* init_cpu(uint8_t* memory){
   CpuState* cpu_ptr = (CpuState*)malloc(sizeof(CpuState));
   cpu_ptr->a=0x00;
@@ -314,9 +305,16 @@ void cpu_cycle(CpuState* cpu){
 
   static uint8_t cycles_until_next_instruction = 0;
   if(cycles_until_next_instruction == 0){
+
+    // look up the instruction and get the operand using the specified addressing mode.
     CpuInstruction current_instruction = get_instruction(cpu);
-    AddtionalInstructionCycles extra_cycles = process_instruction(cpu, current_instruction);
-    cycles_until_next_instruction += current_instruction.cycles_left + extra_cycles;
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[current_instruction.addressing_mode](cpu);
+
+    // execute the instruction, updating the state of the cpu
+    *cpu = cpu_instruction_lookup[current_instruction.name](*cpu, addr_mode_data.operand);
+    
+    // set the number of cycles until the next instruction is loaded
+    cycles_until_next_instruction += current_instruction.cycles_left + addr_mode_data.additional_cycles;
   }
   else{
     --cycles_until_next_instruction;
