@@ -27,11 +27,11 @@ void teardown(void){
 
 START_TEST(test_immediate_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0xFF;
+    bus[0x00FF] = 0xDF;
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = immediate_addressing_mode(cpu);
-    uint8_t expected = 0xFF;
+    uint8_t expected = 0xDF;
     ck_assert_msg(res.operand == expected, "result %#02x != expected %#02x", res.operand, expected);
 
 }

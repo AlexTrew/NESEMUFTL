@@ -271,25 +271,6 @@ const CpuInstruction opcode_x_cpu_instruction_lookup[] = {
 
 typedef uint8_t AddtionalInstructionCycles;
 
-static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction);
-static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
-static void cpu_write(CpuState* cpu, const uint16_t addr, uint8_t data);
-
-  
-
-static void cpu_write(CpuState* cpu, uint16_t addr, uint8_t data){
-  cpu->bus[addr] = data;
-}
-
-static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
-  if(v){
-    cpu->status |= f;
-  }
-  else{
-    cpu->status &= ~f;
-  }
-}
-
 static AddtionalInstructionCycles process_instruction(CpuState* cpu, const CpuInstruction instruction){
   CpuAddressingModeResult addr_mode_data;
   addr_mode_data = addr_mode_lookup[instruction.addressing_mode](cpu);
@@ -305,7 +286,6 @@ CpuState* init_cpu(uint8_t* memory){
   cpu_ptr->p=0x00;
   cpu_ptr->pc=0x0001;
   cpu_ptr->stkptr=0x00;
-  cpu_ptr->status=0x00;
   cpu_ptr->cpu_cycle_count = 0;
   cpu_ptr->bus=memory;
   return cpu_ptr;

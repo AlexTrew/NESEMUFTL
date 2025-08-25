@@ -1,14 +1,17 @@
 #include <assert.h>
 #include <stdbool.h>
+#include "cpu_state.h"
 #include "instructions.h"
 
+
+static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 
 CpuState ADC_(CpuState cpu, const AddrModeFptr addr_mode_func) {
   const CpuAddressingModeResult address_mode = addr_mode_func(&cpu);
   uint16_t result = cpu.a + cpu.bus[address_mode.operand];
     if (result > 0xFF) {
       // Overflow - set carry bit
-      cpu.p = cpu.p | (1 << 0);
+      set_status_flag(&cpu, C, true);
       cpu.a = result & 0xFF;
     } else {
       cpu.a = result;
@@ -138,3 +141,13 @@ const CpuInstructionFPtr cpu_instruction_lookup[] = {
   [TYA] = TYA_,
   [ILLEGAL_INSTRUCTION] = ILLEGAL_INSTRUCTION_
 };
+
+static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
+  if(v){
+    cpu->p |= f;
+  }
+  else{
+    cpu->p &= ~f;
+  }
+}
+

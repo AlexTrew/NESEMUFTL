@@ -10,10 +10,20 @@ typedef struct {
   uint8_t x;
   uint8_t y;
   // Flags
-  uint8_t p;
+  uint8_t p; // status register
   uint8_t stkptr;
-  uint8_t status;
   uint8_t* bus; 
 } CpuState;
+
+typedef enum {
+  C = (1 << 0),
+  Z = (1 << 1),
+  I = (1 << 2),
+  D = (1 << 3),
+  B = (1 << 4),
+  U = (1 << 5),
+  O = (1 << 6),
+  N = (1 << 7),
+} CpuStatusFlag;
 
 #endif
