@@ -1,5 +1,6 @@
 #include "../instructions.h"
 #include <check.h>
+#include <stdint.h>
 #include "../cpu.c"
 
 uint8_t bus[0xFFFF];
@@ -58,12 +59,34 @@ START_TEST(test_absolute_adc_instruction_with_overflow) {
 }
 END_TEST
 
+START_TEST(test_immediate_and_instruction) {
+    // Arrange
+    // Operand location
+    bus[0x00FE] = 0x01;
+
+    // Accumulator
+    cpu->a = 0x11;
+    
+    cpu->pc = 0x00FD;
+
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[ABS](cpu);
+
+    // Act
+    AND_(cpu, addr_mode_data.operand);
+
+    // Assert
+    uint8_t expected = 0x01;
+    ck_assert_msg(cpu->a == expected, "result %#04x != expected %#04x", cpu->a, expected);
+}
+END_TEST
+
 Suite* create_instruction_case(Suite* s){
     TCase* tc = tcase_create("Instruction tests");
 
     tcase_add_checked_fixture(tc, setup, teardown);
     tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
+    tcase_add_test(tc,test_immediate_and_instruction);
 
     suite_add_tcase(s, tc);
 

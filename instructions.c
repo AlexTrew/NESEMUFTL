@@ -19,7 +19,7 @@ void ADC_(CpuState* cpu, const uint16_t operand) {
 }
 
 void AND_(CpuState* cpu, const uint16_t operand) {
-    
+    cpu->a = cpu->a & (operand & 0xFF);
 };
 
 void ASL_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
