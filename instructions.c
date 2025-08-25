@@ -8,7 +8,7 @@
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 
 void ADC_(CpuState* cpu, const uint16_t operand) {
-  uint16_t result = cpu->a + cpu->bus[operand];
+    uint16_t result = cpu->a + cpu->bus[operand];
     if (result > 0xFF) {
       // Overflow - set carry bit
       set_status_flag(cpu, C, true);
@@ -16,10 +16,16 @@ void ADC_(CpuState* cpu, const uint16_t operand) {
     } else {
       cpu->a = result;
     }
+
+    // set the ZERO status flag if the result is 0;
+    set_status_flag(cpu, Z, (cpu->a == 0));
 }
 
 void AND_(CpuState* cpu, const uint16_t operand) {
     cpu->a = cpu->a & (operand & 0xFF);
+
+    // set the ZERO status flag if the result is 0;
+    set_status_flag(cpu, Z, (cpu->a == 0));
 };
 
 void ASL_(CpuState* cpu, const uint16_t operand){assert(false); /* not implemented */};
