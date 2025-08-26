@@ -35,7 +35,23 @@ CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
 };
 
 CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
-  
+
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint16_t abs_addr = addr_mode_data.operand;
+    uint16_t temp = cpu->bus[abs_addr] << 1;
+
+    set_status_flag(cpu, C, (temp > 0xFF));
+    set_status_flag(cpu, Z, (temp == 0));
+
+    if(addr_mode == IMPLIED){
+	cpu->a = temp & 0xFF;
+    } else {
+	cpu->bus[abs_addr] = temp;
+    }
+
+    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
 };
 
 CpuInstructionResult BCC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
