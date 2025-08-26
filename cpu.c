@@ -308,14 +308,12 @@ void cpu_cycle(CpuState* cpu){
 
     // look up the instruction and get the operand using the specified addressing mode.
     CpuInstruction current_instruction = get_instruction(cpu);
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[current_instruction.addressing_mode](cpu);
 
     // execute the instruction, updating the state of the cpu
-    CpuInstructionFPtr instruction_func = cpu_instruction_lookup[current_instruction.name];
-    instruction_func(cpu, addr_mode_data.operand);
+    CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
     
     // set the number of cycles until the next instruction is loaded
-    cycles_until_next_instruction += current_instruction.cycles_left + addr_mode_data.additional_cycles;
+    cycles_until_next_instruction += current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
   }
   else{
     --cycles_until_next_instruction;
