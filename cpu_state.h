@@ -22,7 +22,7 @@ typedef enum {
   D = (1 << 3),
   B = (1 << 4),
   U = (1 << 5),
-  O = (1 << 6),
+  V = (1 << 6),
   N = (1 << 7),
 } CpuStatusFlag;
 
