@@ -7,10 +7,11 @@
 
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
+static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint16_t result = cpu->a + cpu->bus[addr_mode_data.operand];
+    uint16_t result = cpu->a + cpu->bus[addr_mode_data.operand] + get_status_flag(cpu, C);
 
     set_status_flag(cpu, C, (result > 0xFF));
     cpu->a = result & 0xFF;
@@ -257,6 +258,9 @@ const CpuInstructionFPtr cpu_instruction_lookup[] = {
   [ILLEGAL_INSTRUCTION] = ILLEGAL_INSTRUCTION_
 };
 
+static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f){
+  return cpu->p & f;
+}
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
   if(v){
