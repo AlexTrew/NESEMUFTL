@@ -11,6 +11,8 @@
 /*
   This is the cpu. we are emulating the MOS 6502. 
 
+  this is the best document: https://www.masswerk.at/6502/6502_instruction_set.html
+
   see https://www.nesdev.org/wiki/CPU_ALL for details
   see the datasheets:
   https://www.princeton.edu/~mae412/HANDOUTS/Datasheets/6502.pdf
