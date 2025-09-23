@@ -10,6 +10,13 @@
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 
+static bool locations_on_same_page(uint16_t a, uint16_t b) {
+    if ((a & 0xF0) != (b & 0xF0)) {
+	return false;
+    }          
+    return true;
+}  
+
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     uint16_t result;
@@ -73,14 +80,29 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint8_t additional_cycles_from_instruction = 0;
+    
     if(get_status_flag(cpu, C) == 0){
-	cpu->pc = addr_mode_data.pc_offset;
+	// TODO read operand as a signed 8 bit int
+        uint16_t new_addr = cpu->pc + (int8_t)addr_mode_data.operand;
+
+	// add an additional cycle due to branching
+	++additional_cycles_from_instruction;
+
+	// if the new address is on a different page, add another additional cycle
+	// TODO test this logic 
+        if (!locations_on_same_page(new_addr, cpu->pc)) {
+	    ++additional_cycles_from_instruction;
+	}          
+
     } else {
 	//update program counter
 	cpu->pc += addr_mode_data.pc_offset;
     }
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+
+    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
     return res;
 };
 
