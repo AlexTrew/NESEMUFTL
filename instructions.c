@@ -74,11 +74,11 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, C) == 0){
-	 cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.pc_offset;
+    } else {
+	//update program counter
+	cpu->pc += addr_mode_data.pc_offset;
     }
-
-    //update program counter
-    cpu->pc += addr_mode_data.pc_offset;
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -88,10 +88,10 @@ CpuInstructionResult BCS_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, C) == 1){
 	 cpu->pc = addr_mode_data.pc_offset;
+    } else {
+	//update program counter
+	cpu->pc += addr_mode_data.pc_offset;
     }
-
-    //update program counter
-    cpu->pc += addr_mode_data.pc_offset;
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -100,12 +100,11 @@ CpuInstructionResult BCS_(CpuState* cpu, CpuAddrMode addr_mode){
 CpuInstructionResult BEQ_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, Z) == 1){
-	 cpu->pc = addr_mode_data.pc_offset;
+	 cpu->pc = addr_mode_data.operand;
     } else {
       //update program counter
-      cpu->pc += 1;
+      cpu->pc += addr_mode_data.pc_offset;
     }         
-
     
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -116,10 +115,10 @@ CpuInstructionResult BIT_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 CpuInstructionResult BMI_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, N) == 1){
-	cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.operand;
     } else {
       //update program counter
-      cpu->pc += 1;
+      cpu->pc += addr_mode_data.pc_offset;
     }         
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
@@ -129,11 +128,12 @@ CpuInstructionResult BMI_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BNE_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, Z) == 0){
-	cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.operand;
     } else {
       //update program counter
-      cpu->pc += 1;
+      cpu->pc += addr_mode_data.pc_offset;
     }         
+
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -142,10 +142,10 @@ CpuInstructionResult BNE_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BPL_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, N) == 0){
-	 cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.operand;
     } else {
       //update program counter
-      cpu->pc += 1;
+      cpu->pc += addr_mode_data.pc_offset;
     }         
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
@@ -168,12 +168,11 @@ CpuInstructionResult BRK_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BVC_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, V) == 0){
-	 cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.operand;
     } else {
-      //update program counter
-      cpu->pc += 1;
+	//update program counter
+	cpu->pc += addr_mode_data.pc_offset;
     }         
-
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -182,11 +181,12 @@ CpuInstructionResult BVC_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BVS_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     if(get_status_flag(cpu, V) == 1){
-	 cpu->pc = addr_mode_data.pc_offset;
+	cpu->pc = addr_mode_data.operand;
     } else {
-      //update program counter
-      cpu->pc += 1;
+	//update program counter
+	cpu->pc += addr_mode_data.pc_offset;
     }         
+
 
     CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;

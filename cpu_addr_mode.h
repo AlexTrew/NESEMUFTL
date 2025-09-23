@@ -29,7 +29,7 @@ typedef struct CpuAddressingModeResult{
      additional_cycles: sometimes, some addressing modes require the current instruction to take additional clock cycles;
      that is specified here. */
   
-  int16_t pc_offset;
+  int16_t pc_offset; // the amount by which to increment the program counter; usually the size in bytes of the instruction and its operands
   uint16_t operand;
   uint8_t additional_cycles;
 } CpuAddressingModeResult;
