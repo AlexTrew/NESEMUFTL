@@ -9,8 +9,9 @@
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
+static bool mem_addresses_on_same_page(uint16_t a, uint16_t b); 
 
-static bool locations_on_same_page(uint16_t a, uint16_t b) {
+static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
     if ((a & 0xF0) != (b & 0xF0)) {
 	return false;
     }          
@@ -92,7 +93,7 @@ CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 	// if the new address is on a different page, add another additional cycle
 	// TODO test this logic 
-        if (!locations_on_same_page(new_addr, cpu->pc)) {
+        if (!mem_addresses_on_same_page(new_addr, cpu->pc)) {
 	    ++additional_cycles_from_instruction;
 	}          
 

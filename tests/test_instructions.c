@@ -1,4 +1,4 @@
-#include "../instructions.h"
+#include "../instructions.c"
 #include <check.h>
 #include <stdint.h>
 #include "../cpu.c"
@@ -16,6 +16,31 @@ void setup(void) {
 void teardown(void) {
     delete_cpu(cpu);
 }
+
+START_TEST(test_mem_addresses_on_same_page_check) {
+    // Arrange
+    uint16_t a = 0x00FD;
+    uint16_t b = 0x00ED;
+
+    // Act
+    bool res = mem_addresses_on_same_page(a, b);
+
+    // Assert
+    ck_assert(res == false);
+
+    // Arrange
+    a = 0x00FD;
+    b = 0x00FD;
+
+    // Act
+    res = mem_addresses_on_same_page(a, b);
+
+    // Assert
+    ck_assert(res == true);
+}
+END_TEST
+
+
 
 START_TEST(test_absolute_adc_instruction) {
     // Arrange
@@ -80,6 +105,7 @@ Suite* create_instruction_case(Suite* s){
     TCase* tc = tcase_create("Instruction tests");
 
     tcase_add_checked_fixture(tc, setup, teardown);
+    tcase_add_test(tc, test_mem_addresses_on_same_page_check);
     tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
     tcase_add_test(tc,test_immediate_and_instruction);
