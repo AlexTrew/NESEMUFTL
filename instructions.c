@@ -10,6 +10,12 @@
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b); 
+static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x);
+
+static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x) {
+    int8_t res = *((int16_t*)&x) & 0xFF;
+    return res;
+}
 
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
     if ((a & 0xF0) != (b & 0xF0)) {
@@ -85,8 +91,9 @@ CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
     uint8_t additional_cycles_from_instruction = 0;
     
     if(get_status_flag(cpu, C) == 0){
-	// TODO read operand as a signed 8 bit int
-        uint16_t new_addr = cpu->pc + (int8_t)addr_mode_data.operand;
+	
+	// read operand bytes as a signed 8 bit integer
+        uint16_t new_addr = cpu->pc + convert_16_bit_uint_to_8_bit_signed_int(addr_mode_data.operand);
 
 	// add an additional cycle due to branching
 	++additional_cycles_from_instruction;
