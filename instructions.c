@@ -25,8 +25,6 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
     return true;
 }  
 
-
-
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     uint16_t result;
