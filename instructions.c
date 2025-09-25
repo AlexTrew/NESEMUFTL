@@ -13,7 +13,7 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b);
 static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x);
 
 static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x) {
-    int8_t res = *((int16_t*)&x) & 0xFF;
+    int8_t res = (int16_t)x & 0xFF;
     return res;
 }
 
@@ -103,6 +103,8 @@ CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
         if (!mem_addresses_on_same_page(new_addr, cpu->pc)) {
 	    ++additional_cycles_from_instruction;
 	}          
+
+	cpu->pc = new_addr;
 
     } else {
 	//update program counter

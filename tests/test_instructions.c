@@ -110,24 +110,43 @@ START_TEST(test_immediate_and_instruction) {
 }
 END_TEST
 
-START_TEST(test_bcc_instruction) {
+START_TEST(test_bcc_instruction_same_page) {
     // Arrange
-    // Operand location
-    bus[0x00FE] = 0x01;
 
-    // Accumulator
-    cpu->a = 0x11;
-    
+    set_status_flag(cpu, C, false);
+    int8_t offset = -12;
+    bus[0x00FE] = (uint16_t)offset;
     cpu->pc = 0x00FD;
 
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[ABS](cpu);
-
     // Act
-    AND_(cpu, addr_mode_data.operand);
+    CpuInstructionResult res = BCC_(cpu, RELATIVE);
 
     // Assert
-    uint8_t expected = 0x01;
-    ck_assert_msg(cpu->a == expected, "result %#04x != expected %#04x", cpu->a, expected);
+    uint16_t expected_pc_addr = 0x00F1;
+    uint8_t expected_additional_cpu_cycles = 1;
+
+    ck_assert_msg(cpu->pc == expected_pc_addr, "result %#04x != expected %#04x", cpu->pc, expected_pc_addr);
+    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %dx", res.additional_cpu_cycles, expected_additional_cpu_cycles);
+}
+END_TEST
+
+START_TEST(test_bcc_instruction_different_page) {
+    // Arrange
+
+    set_status_flag(cpu, C, false);
+    int8_t offset = 4;
+    bus[0x00EE] = (uint16_t)offset;
+    cpu->pc = 0x00ED;
+
+    // Act
+    CpuInstructionResult res = BCC_(cpu, RELATIVE);
+
+    // Assert
+    uint16_t expected_pc_addr = 0x00F1;
+    uint8_t expected_additional_cpu_cycles = 2;
+
+    ck_assert_msg(cpu->pc == expected_pc_addr, "result %#04x != expected %#04x", cpu->pc, expected_pc_addr);
+    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %dx", res.additional_cpu_cycles, expected_additional_cpu_cycles);
 }
 END_TEST
 
@@ -137,7 +156,8 @@ Suite* create_instruction_case(Suite* s){
     tcase_add_checked_fixture(tc, setup, teardown);
     tcase_add_test(tc, test_mem_addresses_on_same_page_check);
     tcase_add_test(tc, test_convert_16_bit_uint_to_8_bit_signed_int);
-    tcase_add_test(tc, test_bcc_instruction);
+    tcase_add_test(tc, test_bcc_instruction_same_page);
+    tcase_add_test(tc, test_bcc_instruction_different_page);
     tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
     tcase_add_test(tc,test_immediate_and_instruction);
