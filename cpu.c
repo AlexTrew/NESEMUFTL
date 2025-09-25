@@ -303,21 +303,19 @@ void cpu_cycle(CpuState* cpu){
    In this emulator, at least for now, instructions are exectued in a single cpu iteration:
    we do nothing for the remaining cycles for the instruction so the timings are correct. */
 
-  static uint8_t cycles_until_next_instruction = 0;
-  if(cycles_until_next_instruction == 0){
+    static uint8_t cycles_until_next_instruction = 0;
+    if(cycles_until_next_instruction == 0){
 
-    // look up the instruction and get the operand using the specified addressing mode.
-    CpuInstruction current_instruction = get_instruction(cpu);
+	// look up the instruction and get the operand using the specified addressing mode.
+	CpuInstruction current_instruction = get_instruction(cpu);
 
-    // execute the instruction, updating the state of the cpu
-    CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
+	// execute the instruction, updating the state of the cpu
+	CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
     
-    // set the number of cycles until the next instruction is loaded
-    cycles_until_next_instruction += current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
-  }
-  else{
-    --cycles_until_next_instruction;
-  }
-  // Increment the program counter.
-  ++cpu->pc;
+	// set the number of cycles until the next instruction is loaded
+	cycles_until_next_instruction += current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
+    }
+    else{
+	--cycles_until_next_instruction;
+    }
 }
