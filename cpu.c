@@ -299,9 +299,8 @@ CpuInstruction get_instruction(const CpuState* cpu){
 
 void cpu_cycle(CpuState* cpu){
   /* Load an instruction from an opcode and execute it.
-
-   In this emulator, at least for now, instructions are exectued in a single cpu iteration:
-   we do nothing for the remaining cycles for the instruction so the timings are correct. */
+     In this emulator, at least for now, instructions are exectued in a single cpu iteration:
+     we do nothing for the remaining cycles for the instruction so the timings are correct. */
 
     static uint8_t cycles_until_next_instruction = 0;
     if(cycles_until_next_instruction == 0){
@@ -313,7 +312,7 @@ void cpu_cycle(CpuState* cpu){
 	CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
     
 	// set the number of cycles until the next instruction is loaded
-	cycles_until_next_instruction += current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
+	cycles_until_next_instruction = current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
     }
     else{
 	--cycles_until_next_instruction;
