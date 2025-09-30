@@ -231,11 +231,35 @@ CpuInstructionResult CLV_(CpuState *cpu, CpuAddrMode addr_mode) {
     return res;
 };
 
-CpuInstructionResult CMP_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult CMP_(CpuState *cpu, CpuAddrMode addr_mode) {
+    // compare memory with accumulator
+    // A - M
+    uint16_t res = cpu->a - cpu->bus[cpu->pc + 1];
 
-CpuInstructionResult CPX_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    set_status_flag(cpu, C, res > 0xFF);
+    set_status_flag(cpu, N, res & 0x80);
+    set_status_flag(cpu, Z, res == 0);
+};
 
-CpuInstructionResult CPY_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult CPX_(CpuState *cpu, CpuAddrMode addr_mode) {
+    // compare memory with X 
+    // X - M
+    uint16_t res = cpu->x - cpu->bus[cpu->pc + 1];
+
+    set_status_flag(cpu, C, res > 0xFF);
+    set_status_flag(cpu, N, res & 0x80);
+    set_status_flag(cpu, Z, res == 0);
+};
+
+CpuInstructionResult CPY_(CpuState *cpu, CpuAddrMode addr_mode) {
+    // compare memory with Y
+    // Y - M
+    uint16_t res = cpu->y - cpu->bus[cpu->pc + 1];
+
+    set_status_flag(cpu, C, res > 0xFF);
+    set_status_flag(cpu, N, res & 0x80);
+    set_status_flag(cpu, Z, res == 0);
+};
 
 CpuInstructionResult DEC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
