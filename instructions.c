@@ -18,6 +18,7 @@ static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b); 
 static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x);
 static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch, CpuAddrMode addr_mode);
+static CpuInstructionResult compare_instruction(CpuState* cpu, CpuAddrMode addr_mode, uint8_t value_to_compare);
 
 static uint8_t read_memory(const CpuState* cpu, uint16_t address){
   return cpu->bus[address] & 0xFF;
@@ -231,37 +232,51 @@ CpuInstructionResult CLV_(CpuState *cpu, CpuAddrMode addr_mode) {
     return res;
 };
 
-CpuInstructionResult CMP_(CpuState *cpu, CpuAddrMode addr_mode) {
-    // compare memory with accumulator
-    // A - M
-    uint16_t res = cpu->a - cpu->bus[cpu->pc + 1];
+// comparison instructions
+
+static CpuInstructionResult compare_instruction(CpuState* cpu, CpuAddrMode addr_mode, uint8_t value_to_compare){
+  /* Compare a value with the operand of the current instruction and set the status flags accordingly. */
+
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+    uint16_t res = value_to_compare - addr_mode_data.operand;
 
     set_status_flag(cpu, C, res > 0xFF);
     set_status_flag(cpu, N, res & 0x80);
     set_status_flag(cpu, Z, res == 0);
+
+    cpu->pc += addr_mode_data.pc_offset;
+
+    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+}
+
+
+CpuInstructionResult CMP_(CpuState *cpu, CpuAddrMode addr_mode) {
+    // compare memory with accumulator
+    // A - M
+    return compare_instruction(cpu, addr_mode, cpu->a);
 };
 
 CpuInstructionResult CPX_(CpuState *cpu, CpuAddrMode addr_mode) {
     // compare memory with X 
     // X - M
-    uint16_t res = cpu->x - cpu->bus[cpu->pc + 1];
-
-    set_status_flag(cpu, C, res > 0xFF);
-    set_status_flag(cpu, N, res & 0x80);
-    set_status_flag(cpu, Z, res == 0);
+    return compare_instruction(cpu, addr_mode, cpu->x);
 };
 
 CpuInstructionResult CPY_(CpuState *cpu, CpuAddrMode addr_mode) {
     // compare memory with Y
     // Y - M
-    uint16_t res = cpu->y - cpu->bus[cpu->pc + 1];
-
-    set_status_flag(cpu, C, res > 0xFF);
-    set_status_flag(cpu, N, res & 0x80);
-    set_status_flag(cpu, Z, res == 0);
+    return compare_instruction(cpu, addr_mode, cpu->x);
 };
 
-CpuInstructionResult DEC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult DEC_(CpuState *cpu, CpuAddrMode addr_mode) {
+    // decrement the value at the memory location
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+    uint8_t value = cpu->bus[addr_mode_data.operand] - 1;
+
+    set_status_flag(cpu, Z, (value & 0xFF) == 0);
+    set_status_flag(cpu, N, (value & 0x80));
+};
 
 CpuInstructionResult DEX_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
