@@ -29,7 +29,7 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     uint16_t result;
 
-    bool overflow = __builtin_add_overflow(cpu->a, cpu->bus[addr_mode_data.operand], &result);
+    bool overflow = __builtin_add_overflow(cpu->a, cpu->bus[addr_mode_data.operand_address], &result);
     overflow = __builtin_add_overflow(result, get_status_flag(cpu, C), &result) && overflow;
 
     // set accumulator
@@ -50,7 +50,7 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = cpu->a & (addr_mode_data.operand & 0xFF);
+    cpu->a = (cpu->a & (cpu->bus[addr_mode_data.operand_address] & 0xFF));
 
     // set status flags
     set_status_flag(cpu, Z, (cpu->a == 0));
@@ -66,7 +66,7 @@ CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t abs_addr = addr_mode_data.operand;
+    uint16_t abs_addr = addr_mode_data.operand_address;
     uint16_t temp = cpu->bus[abs_addr] << 1;
 
     set_status_flag(cpu, C, (temp > 0xFF));
@@ -97,8 +97,8 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
     
     if(follow_branch){
 	
-	// read operand bytes as a signed 8 bit integer
-        uint16_t new_addr = cpu->pc + convert_16_bit_uint_to_8_bit_signed_int(addr_mode_data.operand);
+	// read operand_address bytes as a signed 8 bit integer
+        uint16_t new_addr = cpu->pc + convert_16_bit_uint_to_8_bit_signed_int(addr_mode_data.operand_address);
 
 	// add an additional cycle due to branching
 	++additional_cycles_from_instruction;
@@ -245,7 +245,7 @@ CpuInstructionResult JSR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = addr_mode_data.operand;
+    cpu->a = cpu->bus[addr_mode_data.operand_address];
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->a == 0));
@@ -260,7 +260,7 @@ CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->x = addr_mode_data.operand;
+    cpu->x = cpu->bus[addr_mode_data.operand_address];
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->x == 0));
@@ -275,7 +275,8 @@ CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult LDY_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->y = addr_mode_data.operand;
+
+    cpu->y = cpu->bus[addr_mode_data.operand_address];
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->y == 0));

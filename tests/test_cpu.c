@@ -31,8 +31,8 @@ START_TEST(test_immediate_addressing_mode){
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = immediate_addressing_mode(cpu);
-    uint8_t expected = 0xDF;
-    ck_assert_msg(res.operand == expected, "result %#02x != expected %#02x", res.operand, expected);
+    uint8_t expected_address = 0x00FF;
+    ck_assert_msg(res.operand_address == expected_address, "result %#02x != expected %#02x", res.operand_address, expected_address);
 
 }
 END_TEST
@@ -45,21 +45,21 @@ START_TEST(test_absolute_addressing_mode){
 
     CpuAddressingModeResult res = absolute_addressing_mode(cpu);
     uint16_t expected = 0xFE16;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 
 }
 END_TEST
 
 START_TEST(test_absolute_x_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x00;
+    bus[0x00FF] = 0x0;
     bus[0x0100] = 0xFE;
     cpu->x=0x01;
     cpu->pc = 0x00FE;
     uint16_t expected = 0xFE01;
 
     CpuAddressingModeResult res = absolute_x_addressing_mode(cpu);
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -72,7 +72,7 @@ START_TEST(test_absolute_y_addressing_mode){
     uint16_t expected = 0xFE01;
 
     CpuAddressingModeResult res = absolute_y_addressing_mode(cpu);
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 
 }
 END_TEST
@@ -84,7 +84,7 @@ START_TEST(test_zp_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_addressing_mode(cpu);
     uint16_t expected = 0x0016;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -99,7 +99,7 @@ START_TEST(test_ind_x_addressing_mode){
 
     CpuAddressingModeResult res = indirect_x_addressing_mode(cpu);
     uint16_t expected = 0x0705;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -113,7 +113,7 @@ START_TEST(test_ind_y_addressing_mode){
 
     CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
     uint16_t expected = 0x0704;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -127,7 +127,7 @@ START_TEST(test_ind_y_addressing_mode_with_carry){
 
     CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
     uint16_t expected = 0x0802;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -139,7 +139,7 @@ START_TEST(test_zpx_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_x_offset_addressing_mode(cpu);
     uint16_t expected = 0x00a1;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
@@ -151,7 +151,7 @@ START_TEST(test_zpy_addressing_mode){
 
     CpuAddressingModeResult res = zero_page_y_offset_addressing_mode(cpu);
     uint16_t expected = 0x00a1;
-    ck_assert_msg(res.operand == expected, "result %#04x != expected %#04x", res.operand, expected);
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 
 }
 END_TEST

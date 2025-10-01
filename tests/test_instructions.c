@@ -53,10 +53,10 @@ END_TEST
 
 START_TEST(test_absolute_adc_instruction) {
     // Arrange
-    // Operand location
+    // Operand_Address location
     bus[0x00FE] = 0xDD;
     bus[0x00FF] = 0xDD;
-    // Operand value
+    // Operand_Address value
     bus[0xDDDD] = 0x01;
     cpu->pc = 0x00FD;
 
@@ -70,11 +70,11 @@ END_TEST
 
 START_TEST(test_absolute_adc_instruction_with_overflow) {
     // Arrange
-    // Operand location
+    // Operand_Address location
     bus[0x00FE] = 0xDD;
     bus[0x00FF] = 0xDD;
 
-    // Operand value
+    // Operand_Address value
     bus[0xDDDD] = 0xFF;
     cpu->pc = 0x00FD;
     cpu->a = 0x02;
@@ -91,7 +91,7 @@ END_TEST
 
 START_TEST(test_immediate_and_instruction) {
     // Arrange
-    // Operand location
+    // Operand_Address location
     bus[0x00FE] = 0x01;
 
     // Accumulator
@@ -99,10 +99,9 @@ START_TEST(test_immediate_and_instruction) {
     
     cpu->pc = 0x00FD;
 
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[ABS](cpu);
 
     // Act
-    AND_(cpu, addr_mode_data.operand);
+    AND_(cpu, IMM);
 
     // Assert
     uint8_t expected = 0x01;
