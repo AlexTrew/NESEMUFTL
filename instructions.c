@@ -56,7 +56,7 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 }
 
@@ -71,7 +71,7 @@ CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -94,7 +94,7 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -128,7 +128,7 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 	cpu->pc += addr_mode_data.pc_offset;
     }
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
     return res;
 }
 
@@ -181,7 +181,7 @@ CpuInstructionResult BRK_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -194,7 +194,7 @@ CpuInstructionResult CLC_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -205,7 +205,7 @@ CpuInstructionResult CLD_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -216,7 +216,7 @@ CpuInstructionResult CLI_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -227,7 +227,7 @@ CpuInstructionResult CLV_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -266,7 +266,7 @@ CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -281,7 +281,7 @@ CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -296,7 +296,7 @@ CpuInstructionResult LDY_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -304,7 +304,7 @@ CpuInstructionResult LSR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult NOP_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    CpuInstructionResult res = {.updated_cpu_state=*cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
 
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
@@ -347,7 +347,7 @@ CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -358,7 +358,7 @@ CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -369,7 +369,7 @@ CpuInstructionResult STY_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 }
 
@@ -383,7 +383,7 @@ CpuInstructionResult TAX_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -397,7 +397,7 @@ CpuInstructionResult TAY_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
     
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -411,7 +411,7 @@ CpuInstructionResult TSX_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
     
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -425,7 +425,7 @@ CpuInstructionResult TXA_(CpuState* cpu, CpuAddrMode addr_mode){
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
     
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -439,7 +439,7 @@ CpuInstructionResult TXS_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
     
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -453,7 +453,7 @@ CpuInstructionResult TYA_(CpuState *cpu, CpuAddrMode addr_mode) {
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
     
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 

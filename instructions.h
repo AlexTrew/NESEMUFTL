@@ -68,8 +68,6 @@ typedef enum {
 
 
 typedef struct {
-  // pointless for now but might be useful for logging
-  CpuState updated_cpu_state;
   uint8_t additional_cpu_cycles;
 } CpuInstructionResult;
 
