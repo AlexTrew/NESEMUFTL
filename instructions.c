@@ -6,12 +6,24 @@
 #include "cpu_state.h"
 #include "instructions.h"
 
+/* some functions to make reading and writing memory slightly more readable */
+
+static uint8_t read_memory(const CpuState* cpu, uint16_t address);
+static void write_memory(const CpuState* cpu, uint16_t address, uint8_t value);
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b); 
 static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x);
 static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch, CpuAddrMode addr_mode);
+
+static uint8_t read_memory(const CpuState* cpu, uint16_t address){
+  return cpu->bus[address] & 0xFF;
+}
+
+static void write_memory(const CpuState *cpu, uint16_t address, uint8_t value) {
+  cpu->bus[address] = value;
+}
 
 static int8_t convert_16_bit_uint_to_8_bit_signed_int(uint16_t x) {
     int8_t res = (int16_t)x & 0xFF;
@@ -29,7 +41,7 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     uint16_t result;
 
-    bool overflow = __builtin_add_overflow(cpu->a, cpu->bus[addr_mode_data.operand_address], &result);
+    bool overflow = __builtin_add_overflow(cpu->a, read_memory(cpu, addr_mode_data.operand_address), &result);
     overflow = __builtin_add_overflow(result, get_status_flag(cpu, C), &result) && overflow;
 
     // set accumulator
@@ -50,7 +62,7 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = (cpu->a & (cpu->bus[addr_mode_data.operand_address] & 0xFF));
+    cpu->a = (cpu->a & (read_memory(cpu, addr_mode_data.operand_address) & 0xFF));
 
     // set status flags
     set_status_flag(cpu, Z, (cpu->a == 0));
@@ -67,7 +79,7 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
     uint16_t abs_addr = addr_mode_data.operand_address;
-    uint16_t temp = cpu->bus[abs_addr] << 1;
+    uint16_t temp = read_memory(cpu, abs_addr) << 1;
 
     set_status_flag(cpu, C, (temp > 0xFF));
     set_status_flag(cpu, Z, (temp == 0));
@@ -76,7 +88,7 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
     if(addr_mode == IMPLIED){
 	cpu->a = temp & 0xFF;
     } else {
-	cpu->bus[abs_addr] = temp;
+	write_memory(cpu, abs_addr, temp);
     }
 
     //update program counter
@@ -245,7 +257,7 @@ CpuInstructionResult JSR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = cpu->bus[addr_mode_data.operand_address];
+    cpu->a = read_memory(cpu, addr_mode_data.operand_address);
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->a == 0));
@@ -260,7 +272,7 @@ CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->x = cpu->bus[addr_mode_data.operand_address];
+    cpu->x = read_memory(cpu, addr_mode_data.operand_address);
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->x == 0));
@@ -275,8 +287,7 @@ CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult LDY_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-
-    cpu->y = cpu->bus[addr_mode_data.operand_address];
+    cpu->y = read_memory(cpu, addr_mode_data.operand_address);
 
     // set zero status flag
     set_status_flag(cpu, Z, (cpu->y == 0));
@@ -331,7 +342,7 @@ CpuInstructionResult SEI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->bus[cpu->pc] = cpu->a;
+    write_memory(cpu, cpu->pc, cpu->a);
 
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
@@ -342,7 +353,7 @@ CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->bus[cpu->pc] = cpu->x;
+    write_memory(cpu, cpu->pc, cpu->x);
 
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
@@ -353,7 +364,7 @@ CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult STY_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->bus[cpu->pc] = cpu->y;
+    write_memory(cpu, cpu->pc, cpu->y);
 
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
