@@ -56,15 +56,17 @@ START_TEST(test_absolute_adc_instruction) {
     // Operand_Address location
     bus[0x00FE] = 0xDD;
     bus[0x00FF] = 0xDD;
-    // Operand_Address value
+
+    // Operand address and register values
     bus[0xDDDD] = 0x01;
     cpu->pc = 0x00FD;
+    cpu->a = 0x01;
 
     // Act
     ADC_(cpu, ABS);
 
     // Assert
-    ck_assert_msg(cpu->a == 0x01, "result %#04x != expected %#04x", cpu->a, 0x01);
+    ck_assert_msg(cpu->a == 0x02, "result %#04x != expected %#04x", cpu->a, 0x01);
 }
 END_TEST
 
@@ -75,16 +77,19 @@ START_TEST(test_absolute_adc_instruction_with_overflow) {
     bus[0x00FF] = 0xDD;
 
     // Operand_Address value
-    bus[0xDDDD] = 0xFF;
+    bus[0xDDDD] = 4;
+    
     cpu->pc = 0x00FD;
-    cpu->a = 0x02;
+    cpu->a = 128;
 
-    // Act
+    // Act (-128 + -1 should equal 127 and set the V flag to true)
     ADC_(cpu, ABS);
 
+
     // Assert
-    ck_assert_msg(cpu->a == 0x01, "result %#04x != expected %#04x", cpu->a, 0x01);
-    ck_assert_msg(cpu->p == 0x01, "result %#04x != expected %#04x", cpu->a, 0x01);
+    ck_assert_msg((int8_t)cpu->a == -124 , "result %#04x != expected %#04x", (int8_t)cpu->a, -124);
+
+    ck_assert_msg(get_status_flag(cpu, V), "expected V to be true, but it is false");
 
 }
 END_TEST

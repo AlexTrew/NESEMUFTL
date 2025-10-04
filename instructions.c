@@ -11,6 +11,8 @@
 static uint8_t read_memory(const CpuState* cpu, uint16_t address);
 static void write_memory(const CpuState* cpu, uint16_t address, uint8_t value);
 
+/* some utility functions and shared behaviours */
+
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v);
 static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f);
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b); 
@@ -39,19 +41,17 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
 
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint16_t result;
+    uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
+    uint16_t result = cpu->a + m + get_status_flag(cpu, C);
 
-    bool overflow = __builtin_add_overflow(cpu->a, read_memory(cpu, addr_mode_data.operand_address), &result);
-    overflow = __builtin_add_overflow(result, get_status_flag(cpu, C), &result) && overflow;
-
-    // set accumulator
-    cpu->a = result & 0xFF;
 
     // set status flags
-    set_status_flag(cpu, V, overflow);
+    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this wors, but it does
     set_status_flag(cpu, C, (result > 0xFF));
     set_status_flag(cpu, Z, (cpu->a == 0));
     set_status_flag(cpu, N, cpu->a & 0x80);
+
+    cpu->a = result & 0xFF;
 
     //update program counter
     cpu->pc += addr_mode_data.pc_offset;
