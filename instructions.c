@@ -117,7 +117,6 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 	++additional_cycles_from_instruction;
 
 	// if the new address is on a different page, add another additional cycle
-	// TODO test this logic 
         if (!mem_addresses_on_same_page(new_addr, cpu->pc)) {
 	    ++additional_cycles_from_instruction;
 	}          
@@ -238,15 +237,15 @@ static CpuInstructionResult compare_instruction(CpuState* cpu, CpuAddrMode addr_
   /* Compare a value with the operand of the current instruction and set the status flags accordingly. */
 
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint16_t res = value_to_compare - addr_mode_data.operand;
+    uint16_t diff = value_to_compare - addr_mode_data.operand_address;
 
-    set_status_flag(cpu, C, res > 0xFF);
-    set_status_flag(cpu, N, res & 0x80);
-    set_status_flag(cpu, Z, res == 0);
+    set_status_flag(cpu, C, diff > 0xFF);
+    set_status_flag(cpu, N, diff & 0x80);
+    set_status_flag(cpu, Z, diff == 0);
 
     cpu->pc += addr_mode_data.pc_offset;
 
-    CpuInstructionResult res = {.updated_cpu_state= *cpu, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 }
 
@@ -272,15 +271,52 @@ CpuInstructionResult CPY_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult DEC_(CpuState *cpu, CpuAddrMode addr_mode) {
     // decrement the value at the memory location
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint8_t value = cpu->bus[addr_mode_data.operand] - 1;
+    uint8_t value = read_memory(cpu, addr_mode_data.operand_address) - 1;
+    write_memory(cpu, addr_mode_data.operand_address, value);
 
     set_status_flag(cpu, Z, (value & 0xFF) == 0);
     set_status_flag(cpu, N, (value & 0x80));
+
+    // update the program counter
+    if (addr_mode == ABS || addr_mode == ABS_X) {
+      cpu->pc+=3;
+    } else {
+      cpu->pc+=2;
+    }        
+
+    CpuInstructionResult res = {.additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
 };
 
-CpuInstructionResult DEX_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult DEX_(CpuState *cpu, CpuAddrMode addr_mode) {
+    cpu->x = cpu->x-1;
+    
+    cpu->pc+=1;
 
-CpuInstructionResult DEY_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
+    set_status_flag(cpu, N, (cpu->x & 0x80));
+
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+    CpuInstructionResult res = {
+      .additional_cpu_cycles = addr_mode_data.additional_cycles
+          };
+    return res;
+};
+
+CpuInstructionResult DEY_(CpuState *cpu, CpuAddrMode addr_mode) {
+    cpu->y = cpu->y-1;
+    
+    cpu->pc+=1;
+
+    set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
+    set_status_flag(cpu, N, (cpu->y & 0x80));
+
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+    CpuInstructionResult res = {
+      .additional_cpu_cycles = addr_mode_data.additional_cycles
+          };
+    return res;
+};
 
 CpuInstructionResult EOR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
