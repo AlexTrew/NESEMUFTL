@@ -29,7 +29,7 @@
 
 typedef struct CpuInstruction{
   CpuInstructionName name;
-  uint8_t mem_needed;
+  uint8_t size_in_bytes;
   uint8_t cycles_left;
   CpuAddrMode addressing_mode;
 } CpuInstruction;

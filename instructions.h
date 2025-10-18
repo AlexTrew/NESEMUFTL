@@ -69,6 +69,7 @@ typedef enum {
 
 typedef struct {
   uint8_t additional_cpu_cycles;
+  int8_t pc_offset; // the offset to be added to the program counter after this instruction, in addition to the instruction size in bytes 
 } CpuInstructionResult;
 
 

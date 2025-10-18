@@ -38,8 +38,8 @@ START_TEST(test_mem_addresses_on_same_page_check) {
     ck_assert(res == false);
 
     // Arrange
-    a = 0x00FD;
-    b = 0x00FD;
+    a = 0x00E2;
+    b = 0x00E5;
 
     // Act
     res = mem_addresses_on_same_page(a, b);
@@ -116,41 +116,42 @@ END_TEST
 
 START_TEST(test_bcc_instruction_same_page) {
     // Arrange
-
     set_status_flag(cpu, C, false);
-    int8_t offset = -12;
-    bus[0x00FE] = (uint16_t)offset;
-    cpu->pc = 0x00FD;
+
+    bus[0x00E1] = 0x00E5;
+    cpu->pc = 0x00E0;
 
     // Act
     CpuInstructionResult res = BCC_(cpu, RELATIVE);
 
     // Assert
-    uint16_t expected_pc_addr = 0x00F1;
     uint8_t expected_additional_cpu_cycles = 1;
 
-    ck_assert_msg(cpu->pc == expected_pc_addr, "result %#04x != expected %#04x", cpu->pc, expected_pc_addr);
-    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %dx", res.additional_cpu_cycles, expected_additional_cpu_cycles);
+    uint16_t expected_new_pc_addr = 0x00E5;
+
+    uint16_t actual_new_pc_addr = cpu->pc += (2 + res.pc_offset);
+
+    ck_assert_msg((expected_new_pc_addr == actual_new_pc_addr), "result %#04x != expected %#04x", cpu->pc, 3);
+    ck_assert_msg(res.pc_offset=3, "result %#04x != expected %#04x", cpu->pc, 3);
+    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %d", res.additional_cpu_cycles, expected_additional_cpu_cycles);
 }
 END_TEST
 
 START_TEST(test_bcc_instruction_different_page) {
     // Arrange
-
     set_status_flag(cpu, C, false);
-    int8_t offset = 4;
-    bus[0x00EE] = (uint16_t)offset;
-    cpu->pc = 0x00ED;
+
+    bus[0x00E0] = 0x00E4;
+    cpu->pc = 0x00DF;
 
     // Act
     CpuInstructionResult res = BCC_(cpu, RELATIVE);
 
     // Assert
-    uint16_t expected_pc_addr = 0x00F1;
     uint8_t expected_additional_cpu_cycles = 2;
 
-    ck_assert_msg(cpu->pc == expected_pc_addr, "result %#04x != expected %#04x", cpu->pc, expected_pc_addr);
-    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %dx", res.additional_cpu_cycles, expected_additional_cpu_cycles);
+    ck_assert_msg(res.pc_offset=3, "result %#04x != expected %#04x", cpu->pc, 3);
+    ck_assert_msg(res.additional_cpu_cycles == expected_additional_cpu_cycles, "got %d additional cycles != expected %d", res.additional_cpu_cycles, expected_additional_cpu_cycles);
 }
 END_TEST
 
