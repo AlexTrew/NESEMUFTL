@@ -1,7 +1,8 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "cpu.h"
+#include <stdlib.h>
+
 #include "cpu_addr_mode.h"
 #include "cpu_state.h"
 #include "instructions.h"
@@ -116,17 +117,20 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
            the beginning of the next instruction. This takes the form of
            offset = M - pc + 2, where 2 is the size of the current instruction,
 	*/
-	pc_offset = convert_16_bit_uint_to_8_bit_signed_int((read_memory(cpu, addr_mode_data.operand_address)) - (cpu->pc + 2));
 
+	uint16_t target_addr = addr_mode_data.operand_address;
 	// add an additional cycle due to branching
 	++additional_cycles_from_instruction;
 
 	// if the new address is on a different page, add another additional cycle
 	// 2 is the size of the branch instruction
-        if (!mem_addresses_on_same_page(cpu->pc + pc_offset + 2, cpu->pc)) {
+        if (!mem_addresses_on_same_page(target_addr, cpu->pc + 2)) {
 	    ++additional_cycles_from_instruction;
 	};
+
+	pc_offset = abs(target_addr - (cpu->pc +2));
     }        
+
 
     CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
     return res;
