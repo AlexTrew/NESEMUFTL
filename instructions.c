@@ -128,7 +128,8 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 	    ++additional_cycles_from_instruction;
 	};
 
-	pc_offset = abs(target_addr - (cpu->pc +2));
+	//todo account for overflow behaviour
+	pc_offset = (target_addr - (cpu->pc +2));
     }        
 
 
