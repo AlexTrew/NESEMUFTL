@@ -17,14 +17,6 @@ void teardown(void) {
     delete_cpu(cpu);
 }
 
-START_TEST(test_convert_16_bit_uint_to_8_bit_signed_int) {
-    uint16_t a = 244;
-    int8_t res = convert_16_bit_uint_to_8_bit_signed_int(a);
-
-    ck_assert(res == -12);
-}
-END_TEST
-
 
 START_TEST(test_mem_addresses_on_same_page_check) {
     // Arrange
@@ -159,7 +151,6 @@ Suite* create_instruction_case(Suite* s){
 
     tcase_add_checked_fixture(tc, setup, teardown);
     tcase_add_test(tc, test_mem_addresses_on_same_page_check);
-    tcase_add_test(tc, test_convert_16_bit_uint_to_8_bit_signed_int);
     tcase_add_test(tc, test_bcc_instruction_same_page);
     tcase_add_test(tc, test_bcc_instruction_different_page);
     tcase_add_test(tc, test_absolute_adc_instruction);
