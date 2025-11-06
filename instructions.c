@@ -344,9 +344,29 @@ CpuInstructionResult INY_(CpuState *cpu, CpuAddrMode addr_mode) {
     return res;
 };
 
-CpuInstructionResult JMP_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult JMP_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-CpuInstructionResult JSR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    uint16_t target_addr = read_memory(cpu, addr_mode_data.operand_address);
+
+    uint16_t pc_offset = 0;
+
+    // set the pc offset
+    if(target_addr > cpu->pc +2){
+	pc_offset = (target_addr - (cpu->pc +2));
+    }
+    else{
+	pc_offset = ((cpu->pc +2) - target_addr);
+    }
+
+    CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult JSR_(CpuState* cpu, CpuAddrMode addr_mode){
+    stack_push(cpu, cpu->pc+2);
+    return JMP_(cpu, addr_mode);
+};
 
 CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
