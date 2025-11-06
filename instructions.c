@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #include "cpu_addr_mode.h"
 #include "cpu_state.h"
@@ -11,6 +10,9 @@
 
 static uint8_t read_memory(const CpuState* cpu, uint16_t address);
 static void write_memory(const CpuState* cpu, uint16_t address, uint8_t value);
+static void stack_push(CpuState* cpu, uint8_t value);
+static uint8_t stack_pop(CpuState* cpu);
+
 
 /* some utility functions and shared behaviours */
 
@@ -35,14 +37,27 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
     return true;
 }  
 
+static void stack_push(CpuState* cpu, uint8_t value){
+    uint8_t actual_stack_ptr = cpu->stkptr + 0x0100;
+    write_memory(cpu, actual_stack_ptr, value);
+    ++cpu->stkptr; 
+};
+
+static uint8_t stack_pop(CpuState* cpu){
+    uint8_t actual_stack_ptr = cpu->stkptr + 0x0100;
+    uint8_t res = read_memory(cpu, actual_stack_ptr);
+    --cpu->stkptr;
+
+    return res;
+};
+
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
     uint16_t result = cpu->a + m + get_status_flag(cpu, C);
 
-
     // set status flags
-    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this wors, but it does
+    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
     set_status_flag(cpu, C, (result > 0xFF));
     set_status_flag(cpu, Z, (cpu->a == 0));
     set_status_flag(cpu, N, cpu->a & 0x80);
@@ -411,7 +426,7 @@ CpuInstructionResult ORA_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult PHA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->stkptr = cpu->a;
+    stack_push(cpu, cpu->a);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -420,7 +435,7 @@ CpuInstructionResult PHA_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult PHP_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->stkptr = cpu->p;
+    stack_push(cpu, cpu->p);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -429,7 +444,7 @@ CpuInstructionResult PHP_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult PLA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->a = cpu->stkptr;
+    cpu->a = stack_pop(cpu);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -438,7 +453,7 @@ CpuInstructionResult PLA_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult PLP_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->p = cpu->stkptr;
+    cpu->p = stack_pop(cpu);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
