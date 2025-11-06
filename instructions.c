@@ -73,7 +73,7 @@ CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
 
     set_status_flag(cpu, C, (temp > 0xFF));
     set_status_flag(cpu, Z, (temp == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+    set_status_flag(cpu, N, 0);
 
     if(addr_mode == IMPLIED){
 	cpu->a = temp & 0xFF;
@@ -121,7 +121,6 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 	  pc_offset = ((cpu->pc +2) - target_addr);
 	}
     }        
-
 
     CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
     return res;
@@ -285,7 +284,17 @@ CpuInstructionResult DEY_(CpuState *cpu, CpuAddrMode addr_mode) {
     return res;
 };
 
-CpuInstructionResult EOR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult EOR_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    cpu->a = read_memory(cpu, addr_mode_data.operand_address) ^ cpu->a;
+
+    set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
+    set_status_flag(cpu, N, (cpu->a & 0x80));
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
 CpuInstructionResult INC_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
@@ -360,7 +369,25 @@ CpuInstructionResult LDY_(CpuState* cpu, CpuAddrMode addr_mode){
     return res;
 };
 
-CpuInstructionResult LSR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult LSR_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint16_t abs_addr = addr_mode_data.operand_address;
+    uint16_t temp = 1 >> read_memory(cpu, abs_addr);
+
+    set_status_flag(cpu, C, (temp > 0xFF));
+    set_status_flag(cpu, Z, (temp == 0));
+    set_status_flag(cpu, N, cpu->a & 0x80);
+
+    if(addr_mode == IMPLIED){
+	cpu->a = temp & 0xFF;
+    } else {
+	write_memory(cpu, abs_addr, temp);
+    }
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
 CpuInstructionResult NOP_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
@@ -369,19 +396,97 @@ CpuInstructionResult NOP_(CpuState *cpu, CpuAddrMode addr_mode) {
     return res;
 };
 
-CpuInstructionResult ORA_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult ORA_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-CpuInstructionResult PHA_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    cpu->a = read_memory(cpu, addr_mode_data.operand_address) | cpu->a;
 
-CpuInstructionResult PHP_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
+    set_status_flag(cpu, N, (cpu->a & 0x80));
 
-CpuInstructionResult PLA_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
- 
-CpuInstructionResult PLP_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
-CpuInstructionResult ROL_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult PHA_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    cpu->stkptr = cpu->a;
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult PHP_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    cpu->stkptr = cpu->p;
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult PLA_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    cpu->a = cpu->stkptr;
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult PLP_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    cpu->p = cpu->stkptr;
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult ROL_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint16_t abs_addr = addr_mode_data.operand_address;
+    bool tmp_carry = (abs_addr << 7) == 0;
+
+    uint16_t temp = read_memory(cpu, abs_addr) << get_status_flag(cpu, C);
+
+    set_status_flag(cpu, C, tmp_carry);
+    set_status_flag(cpu, Z, (temp == 0));
+    set_status_flag(cpu, N, cpu->a & 0x80);
+
+    if(addr_mode == IMPLIED){
+	cpu->a = temp & 0xFF;
+    } else {
+	write_memory(cpu, abs_addr, temp);
+    }
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint16_t abs_addr = addr_mode_data.operand_address;
+    bool tmp_carry = (7 >> abs_addr) == 0;
+
+    uint16_t temp = get_status_flag(cpu, C) >> read_memory(cpu, abs_addr);
+
+    set_status_flag(cpu, C, tmp_carry);
+    set_status_flag(cpu, Z, (temp == 0));
+    set_status_flag(cpu, N, cpu->a & 0x80);
+
+    if(addr_mode == IMPLIED){
+	cpu->a = temp & 0xFF;
+    } else {
+	write_memory(cpu, abs_addr, temp);
+    }
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
 CpuInstructionResult RTI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
@@ -391,11 +496,33 @@ CpuInstructionResult TRS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
-CpuInstructionResult SEC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult SEC_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-CpuInstructionResult SED_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    set_status_flag(cpu, C, 1);
 
-CpuInstructionResult SEI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult SED_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    set_status_flag(cpu, D, 1);
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult SEI_(CpuState* cpu, CpuAddrMode addr_mode){
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    set_status_flag(cpu, I, 1);
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
 
 CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
