@@ -38,13 +38,13 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
 }  
 
 static void stack_push(CpuState* cpu, uint8_t value){
-    uint8_t actual_stack_ptr = cpu->stkptr + 0x0100;
+    uint16_t actual_stack_ptr = cpu->stkptr + 0x0100;
     write_memory(cpu, actual_stack_ptr, value);
     ++cpu->stkptr; 
 };
 
 static uint8_t stack_pop(CpuState* cpu){
-    uint8_t actual_stack_ptr = cpu->stkptr + 0x0100;
+    uint16_t actual_stack_ptr = cpu->stkptr + 0x0100;
     uint8_t res = read_memory(cpu, actual_stack_ptr);
     --cpu->stkptr;
 

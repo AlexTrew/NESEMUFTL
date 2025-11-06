@@ -6,6 +6,7 @@ SDL/
 cmake_install.cmake
 compile_commands.json
 tests/test_cpu
+tests/test_instructions
 CTestTestfile.cmake
 libcpu.a
 .cache

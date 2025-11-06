@@ -146,10 +146,37 @@ START_TEST(test_bcc_instruction_different_page) {
 }
 END_TEST
 
+START_TEST(test_stack_push) {
+    cpu->stkptr = 0x07;
+    uint8_t expected = 52;
+
+    stack_push(cpu, expected);
+
+    uint8_t actual = cpu->bus[0x0107];
+
+    ck_assert_msg(expected == actual, "result %d != expected %d", actual, expected);
+}
+END_TEST
+
+START_TEST(test_stack_pop) {
+    cpu->stkptr = 0x07;
+
+    uint8_t expected = 52;
+    
+    cpu->bus[0x0107] = expected;
+
+    uint8_t actual = stack_pop(cpu);
+
+    ck_assert_msg(actual == expected, "result %d != expected %d", actual, expected);
+}
+END_TEST
+
+
 Suite* create_instruction_case(Suite* s){
     TCase* tc = tcase_create("Instruction tests");
 
     tcase_add_checked_fixture(tc, setup, teardown);
+    tcase_add_test(tc, test_stack_push);
     tcase_add_test(tc, test_mem_addresses_on_same_page_check);
     tcase_add_test(tc, test_bcc_instruction_same_page);
     tcase_add_test(tc, test_bcc_instruction_different_page);
