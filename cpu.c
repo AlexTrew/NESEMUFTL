@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "instructions.h"
 #include "cpu_state.h"
 
@@ -310,13 +309,18 @@ void cpu_cycle(CpuState* cpu){
 
 	// execute the instruction, updating the state of the cpu
 	CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
-    
+   
 	// set the number of cycles until the next instruction is loaded
 	cycles_until_next_instruction = current_instruction.cycles_left + instruction_result.additional_cpu_cycles;
 
-	// move the program counter to the next instruction
-	cpu->pc += current_instruction.size_in_bytes + instruction_result.pc_offset;
 
+	/* move the program counter to the next instruction for all non jump instructions.
+	   Jump instructions are responsible for updating the program counter themselves
+	   for the sake of simplicity.
+	 */
+	if(current_instruction.name != JMP && current_instruction.name != JSR){
+	    cpu->pc += current_instruction.size_in_bytes + instruction_result.pc_offset;
+	}
     }
     else{
 	--cycles_until_next_instruction;

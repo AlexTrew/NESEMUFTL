@@ -171,18 +171,38 @@ START_TEST(test_stack_pop) {
 }
 END_TEST
 
+START_TEST(test_jump_absolute) {
+    // Arrange
+
+    bus[0x00E1] = 0xFE;
+    bus[0x00E2] = 0xDC;
+    cpu->pc = 0x00E0;
+    cpu->x = 1;
+
+    // Act
+    JMP_(cpu, ABS);
+
+    // Assert
+    uint16_t expected = 0xDCFE;
+
+    ck_assert_msg(cpu->pc == expected, "result %#06x != expected %#06x", cpu->pc, expected);
+}
+END_TEST
+
 
 Suite* create_instruction_case(Suite* s){
     TCase* tc = tcase_create("Instruction tests");
 
     tcase_add_checked_fixture(tc, setup, teardown);
     tcase_add_test(tc, test_stack_push);
+    tcase_add_test(tc, test_stack_pop);
     tcase_add_test(tc, test_mem_addresses_on_same_page_check);
     tcase_add_test(tc, test_bcc_instruction_same_page);
     tcase_add_test(tc, test_bcc_instruction_different_page);
     tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
     tcase_add_test(tc,test_immediate_and_instruction);
+    tcase_add_test(tc,test_jump_absolute);
 
     suite_add_tcase(s, tc);
 

@@ -25,8 +25,6 @@
  */
 
 
-
-
 typedef struct CpuInstruction{
   CpuInstructionName name;
   uint8_t size_in_bytes;

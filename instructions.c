@@ -184,7 +184,7 @@ CpuInstructionResult BVS_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult BRK_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->stkptr = cpu->pc+2;
+    stack_push(cpu, cpu->pc+2);
     set_status_flag(cpu, I, 1);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
@@ -347,19 +347,11 @@ CpuInstructionResult INY_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult JMP_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t target_addr = read_memory(cpu, addr_mode_data.operand_address);
-
-    uint16_t pc_offset = 0;
+    uint16_t target_addr = addr_mode_data.operand_address;
 
     // set the pc offset
-    if(target_addr > cpu->pc +2){
-	pc_offset = (target_addr - (cpu->pc +2));
-    }
-    else{
-	pc_offset = ((cpu->pc +2) - target_addr);
-    }
-
-    CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    cpu->pc = target_addr;
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
