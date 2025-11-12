@@ -515,9 +515,24 @@ CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){
     return res;
 };
 
-CpuInstructionResult RTI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult RTI_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-CpuInstructionResult RTS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+    cpu->p = stack_pop(cpu);
+    cpu->pc = stack_pop(cpu);
+  
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
+
+CpuInstructionResult RTS_(CpuState *cpu, CpuAddrMode addr_mode) {
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    cpu->pc = stack_pop(cpu);
+  
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
 CpuInstructionResult TRS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
