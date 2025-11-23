@@ -86,6 +86,50 @@ START_TEST(test_absolute_adc_instruction_with_overflow) {
 }
 END_TEST
 
+START_TEST(test_absolute_sbc_instruction_with_carry) {
+    // Arrange
+    // Operand_Address location
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+
+    set_status_flag(cpu, C, 1);
+
+    // Operand address and register values
+    bus[0xDDDD] = 0x01;
+    cpu->pc = 0x00FD;
+    cpu->a = 0x04;
+
+    // Act
+    SBC_(cpu, ABS);
+
+    // Assert
+    uint8_t expected = 0x03;
+    ck_assert_msg(cpu->a == expected, "result %#04x != expected %#04x", cpu->a, expected);
+}
+END_TEST
+
+START_TEST(test_absolute_sbc_instruction_no_carry) {
+    // Arrange
+    // Operand_Address location
+    bus[0x00FE] = 0xDD;
+    bus[0x00FF] = 0xDD;
+
+
+    // Operand address and register values
+    bus[0xDDDD] = 0x01;
+    cpu->pc = 0x00FD;
+    cpu->a = 0x04;
+
+    // Act
+    SBC_(cpu, ABS);
+
+    // Assert
+    uint8_t expected = 0x02;
+    ck_assert_msg(cpu->a == expected, "result %#04x != expected %#04x", cpu->a, expected);
+}
+END_TEST
+
+
 START_TEST(test_immediate_and_instruction) {
     // Arrange
     // Operand_Address location
@@ -201,6 +245,8 @@ Suite* create_instruction_case(Suite* s){
     tcase_add_test(tc, test_bcc_instruction_different_page);
     tcase_add_test(tc, test_absolute_adc_instruction);
     tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
+    tcase_add_test(tc, test_absolute_sbc_instruction_with_carry);
+    tcase_add_test(tc, test_absolute_sbc_instruction_no_carry);
     tcase_add_test(tc,test_immediate_and_instruction);
     tcase_add_test(tc,test_jump_absolute);
 

@@ -521,7 +521,24 @@ CpuInstructionResult RTS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 
 CpuInstructionResult TRS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
-CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
+CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){
+    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+
+    uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
+
+    uint16_t result = cpu->a - m - (1 - get_status_flag(cpu, C));
+
+    // set status flags
+    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
+    set_status_flag(cpu, C, (result > 0xFF));
+    set_status_flag(cpu, Z, (cpu->a == 0));
+    set_status_flag(cpu, N, cpu->a & 0x80);
+
+    cpu->a = result & 0xFF;
+
+    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+    return res;
+};
 
 CpuInstructionResult SEC_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
