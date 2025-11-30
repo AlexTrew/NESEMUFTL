@@ -7,6 +7,7 @@
 #include "cpu_addr_mode.h"
 #include "instructions.h"
 #include "cpu_state.h"
+#include "shared.h"
 
 /*
   This is the cpu. we are emulating the MOS 6502. 
@@ -23,14 +24,6 @@
   numbers of clock cycles to execute!
   - The first byte of the instruction contains this information
  */
-
-
-typedef struct CpuInstruction{
-  CpuInstructionName name;
-  uint8_t size_in_bytes;
-  uint8_t cycles_left;
-  CpuAddrMode addressing_mode;
-} CpuInstruction;
 
 
 CpuState *init_cpu(uint8_t* bus);

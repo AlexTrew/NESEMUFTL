@@ -3,24 +3,8 @@
 
 #include <stdint.h>
 #include "cpu_state.h"
+#include "shared.h"
 
-typedef enum{
-  ACCUM,
-  IMM,
-  ZP,
-  ZP_X,
-  ZP_Y,
-  ABS,
-  ABS_X,
-  ABS_Y,
-  IMPLIED,
-  RELATIVE,
-  ABS_IND_X,
-  IND_X,
-  IND_Y,
-  INDIRECT,
-  NONE
-} CpuAddrMode;
 
 typedef struct CpuAddressingModeResult{
   /* the result of an addressing mode.
