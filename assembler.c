@@ -8,14 +8,22 @@
 int MAX_LINE_LEN = 256;
 
 
-GHashTable opcode_lookup = g_hash_table_new();
+static GHashTable *build_opcode_hash_table() {
+  // TODO add destroy functions for the hash table
+  GHashTable* opcode_lookup = g_hash_table_new_full(g_int_hash, g_int_equal, NULL, NULL);
+  return opcode_lookup;
+}
+
 
 void assemble(CpuState* cpu, const char* filename) {
+
+  GHashTable* opcode_lookup = build_opcode_hash_table();
+
   FILE* file = fopen(filename, "r");
 
   if (file == NULL) {
     printf("File %s not found\n", filename);
-    retur;
+    return;
   }    
   
   char line_buf[MAX_LINE_LEN];
@@ -37,16 +45,8 @@ void assemble(CpuState* cpu, const char* filename) {
 
     ++line_no;
 
-
-    // parse the operand
-
-    // determine the addressing mode
-
-    // determine the operand
-
-    //write this all to memory
   }
 
+  g_hash_table_destroy(opcode_lookup);
   fclose(file);
-
 }
