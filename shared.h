@@ -85,10 +85,14 @@ typedef enum{
 
 typedef struct CpuInstruction{
   CpuInstructionName name;
+  const char* name_str;
   uint8_t size_in_bytes;
   uint8_t cycles_left;
   CpuAddrMode addressing_mode;
 } CpuInstruction;
+
+
+extern const int NUMBER_OF_INSTRUCTIONS;
 
 extern const CpuInstruction opcode_x_cpu_instruction_lookup[];
 
