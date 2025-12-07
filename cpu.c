@@ -16,7 +16,7 @@ CpuState* init_cpu(uint8_t* memory){
   cpu_ptr->x=0x00;
   cpu_ptr->y=0x00;
   cpu_ptr->p=0x00;
-  cpu_ptr->pc=0x0001;
+  cpu_ptr->pc=0x0600;
   cpu_ptr->stkptr=0x00;
   cpu_ptr->cpu_cycle_count = 0;
   cpu_ptr->bus=memory;
@@ -32,7 +32,7 @@ CpuInstruction get_instruction(const CpuState* cpu){
 
   CpuInstruction current_instruction = opcode_x_cpu_instruction_lookup[opcode];
   if(current_instruction.name == ILLEGAL_INSTRUCTION){
-    printf("illegal instruction (opcode %d)\n", opcode);
+    printf("illegal instruction (opcode %x)\n", opcode);
   }
 
   return current_instruction;

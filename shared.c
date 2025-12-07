@@ -100,6 +100,7 @@ const CpuInstruction opcode_x_cpu_instruction_lookup[] = {
   [0x5E] = {.name=LSR, .name_str="LSR-", .cycles_left=7, .size_in_bytes=3, .addressing_mode=ABS_X},
   [0x5F] = {.name=ILLEGAL_INSTRUCTION, .name_str="", .cycles_left=0, .size_in_bytes=0, .addressing_mode=NONE},
   [0x60] = {.name=RTS, .name_str="", .cycles_left=6, .size_in_bytes=1, .addressing_mode=IMPLIED},
+  [0x61] = {.name=ILLEGAL_INSTRUCTION, .name_str="", .cycles_left=0, .size_in_bytes=0, .addressing_mode=NONE},
   [0x62] = {.name=ADC, .name_str="ADC-", .cycles_left=6, .size_in_bytes=2, .addressing_mode=IND_X},
   [0x63] = {.name=ILLEGAL_INSTRUCTION, .name_str="", .cycles_left=0, .size_in_bytes=0, .addressing_mode=NONE},
   [0x64] = {.name=ILLEGAL_INSTRUCTION, .name_str="", .cycles_left=0, .size_in_bytes=0, .addressing_mode=NONE},
