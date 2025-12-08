@@ -11,6 +11,11 @@
 
 int MAX_LINE_LEN = 256;
 
+
+static void hash_table_destroy_value(gpointer data) {
+  free(data);
+}
+
 static uint8_t convert_instruction_string_to_opcode(GHashTable* lookup, const char* instruction) {
     gpointer res = g_hash_table_lookup(lookup, instruction);
     if (res == NULL) {
@@ -46,7 +51,7 @@ static void write_zp_instruction(CpuState* cpu, GHashTable* opcode_lookup, const
 void assemble(CpuState* cpu, const char* filename) {
 
   // build a lookup of opcodes
-  GHashTable* opcode_lookup = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, NULL);
+  GHashTable* opcode_lookup = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, hash_table_destroy_value);
   for (uint16_t i = 0; i < NUMBER_OF_INSTRUCTIONS; ++i) {
     uint8_t* opcode = malloc(sizeof(int));
     memcpy(opcode, &i, sizeof(int));
