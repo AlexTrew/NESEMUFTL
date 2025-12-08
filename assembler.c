@@ -45,7 +45,7 @@ static void write_3_byte_instruction(CpuState* cpu, GHashTable* opcode_lookup, c
 
   /* Here we convert the 16 bit operand into two bytes in the little endian
 format.
-  We do this by shifting it 8 bits forward to get the high order btye, and bitwise anding it to get the low order one */
+  We do this by shifting it 8 bits forward to get the high order btye, and bitwise anding it with 0x00FF to get the low order one */
 
   cpu->bus[cpu->pc] = opcode;
   cpu->bus[cpu->pc+1] = operand & 0xFF;
@@ -71,10 +71,14 @@ void assemble(CpuState* cpu, const char* filename) {
   if (file == NULL) {
     printf("File %s not found\n", filename);
     exit(1);
-  }    
+  }
 
-  // setup and compile regex matchers
-  // yes I know this is not how to interpret a programming language but I cbf
+  /* setup and compile regex matchers for different instruction types 
+
+     Yes I know this is not how to interpret a programming language but I cbf doing it properly
+     and the syntax of 6502 assembly is simple enough that this can work.
+     This module is basically for test purposes anyway.
+  */
   regex_t comment_regex;
   regex_t abs_regex;
   regex_t abs_xy_regex;
@@ -106,7 +110,9 @@ void assemble(CpuState* cpu, const char* filename) {
 
     if (!regexec(&comment_regex, line_buf, 0, NULL, 0)) {
       // it's a comment; do nothing
-    } 
+    }
+
+    // write ABS instruction
     if (!regexec(&abs_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-ABS");
@@ -114,6 +120,7 @@ void assemble(CpuState* cpu, const char* filename) {
       write_3_byte_instruction(cpu, opcode_lookup, instruction, operand);
     } 
 
+    // write ABS X and Y instruction
     else if (!regexec(&abs_xy_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       if (strchr(line_buf, 'Y') !=NULL) {
@@ -125,6 +132,7 @@ void assemble(CpuState* cpu, const char* filename) {
       write_3_byte_instruction(cpu, opcode_lookup, instruction, operand);
     }
 
+    // write zp instruction
     else if (!regexec(&zp_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-ZP");
@@ -132,6 +140,7 @@ void assemble(CpuState* cpu, const char* filename) {
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
     
+    // write zp X or Yinstruction
     else if (!regexec(&zp_xy_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       if (strchr(line_buf, 'Y') !=NULL) {
@@ -143,30 +152,39 @@ void assemble(CpuState* cpu, const char* filename) {
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
 
+    // write immediate instruction
     else if (!regexec(&imm_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s #$%hx", instruction, &operand);
       strcat(instruction, "-IMM");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
+
+    // write implied instruction
     else if (!regexec(&implied_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s", instruction);
       strcat(instruction, "-IMPLIED");
 
       write_single_byte_instruction(cpu, opcode_lookup, instruction);
     }
+
+    // write indirect instruction
     else if (!regexec(&ind_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
+
+    // write indirect X instruction
     else if (!regexec(&ind_x_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND_X");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
+
+    // write indirect Y instruction
     else if (!regexec(&ind_y_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND_Y");
@@ -183,7 +201,10 @@ void assemble(CpuState* cpu, const char* filename) {
 
   printf("Code assembled successfully, %d bytes\n", cpu->pc - 0x0600);
   
+  // reset the stack pointer
   cpu->pc = 0x0600;
+
+  // cleanup  
   g_hash_table_destroy(opcode_lookup);
 
   fclose(file);
