@@ -55,7 +55,6 @@ format.
 }  
 
 
-
 void assemble(CpuState* cpu, const char* filename) {
 
   // build a lookup of opcodes
@@ -75,6 +74,9 @@ void assemble(CpuState* cpu, const char* filename) {
   }    
 
   // setup and compile regex matchers
+  // yes I know this is not how to interpret a programming language but I cbf
+  regex_t alias_regex;
+  regex_t comment_regex;
   regex_t abs_regex;
   regex_t abs_xy_regex;
   regex_t zp_regex;
@@ -85,14 +87,15 @@ void assemble(CpuState* cpu, const char* filename) {
   regex_t imm_regex;
   regex_t implied_regex;
 
-  regcomp(&abs_regex, "^[A-Z]\{3\} [\$][[:xdigit:]]\{4\}\s*;*.*$", REG_EXTENDED);
+  regcomp(&comment_regex, ";*$", REG_EXTENDED);
+  regcomp(&abs_regex, "[A-Z]\{3\} [\$][[:xdigit:]]\{4\}\s*;*.*$", REG_EXTENDED);
   regcomp(&abs_xy_regex, "^[A-Z]\{3\} [\$][[:xdigit:]]\{4\},[XY]\s*;*.*$", REG_EXTENDED);
-  regcomp(&zp_regex, "^[A-Z]\{3\} [\$][[:xdigit:]]\{2\}\s*;*.*$", REG_EXTENDED);
-  regcomp(&zp_xy_regex, "^[A-Z]\{3\} [\$][[:xdigit:]]\{2\},[XY]\s*;*.*$", REG_EXTENDED);
-  regcomp(&ind_regex, "^[A-Z]\{3\} ([\$][[:xdigit:]]\{4\})\s*;*.*$", REG_EXTENDED);
-  regcomp(&ind_x_regex, "^[A-Z]\{3\} ([\$][[:xdigit:]]\{2\},X)\s*;*.*$", REG_EXTENDED);
-  regcomp(&ind_y_regex, "^[A-Z]\{3\} ([\$][[:xdigit:]]\{2\}),Y\s*;*.*$", REG_EXTENDED);
-  regcomp(&imm_regex, "^[A-Z]\{3\} #[\$][[:xdigit:]]\{2\}\s*;*.*$", REG_EXTENDED);
+  regcomp(&zp_regex, "[A-Z]\{3\} [\$][[:xdigit:]]\{2\}\s*;*.*$", REG_EXTENDED);
+  regcomp(&zp_xy_regex, "[A-Z]\{3\} [\$][[:xdigit:]]\{2\},[XY]\s*;*.*$", REG_EXTENDED);
+  regcomp(&ind_regex, "[A-Z]\{3\} ([\$][[:xdigit:]]\{4\})\s*;*.*$", REG_EXTENDED);
+  regcomp(&ind_x_regex, "[A-Z]\{3\} ([\$][[:xdigit:]]\{2\},X)\s*;*.*$", REG_EXTENDED);
+  regcomp(&ind_y_regex, "[A-Z]\{3\} ([\$][[:xdigit:]]\{2\}),Y\s*;*.*$", REG_EXTENDED);
+  regcomp(&imm_regex, "[A-Z]\{3\} #[\$][[:xdigit:]]\{2\}\s*;*.*$", REG_EXTENDED);
   regcomp(&implied_regex, "^[A-Z]\{3\}\s*;*.*$", REG_EXTENDED);
 
   char line_buf[MAX_LINE_LEN];
@@ -101,9 +104,14 @@ void assemble(CpuState* cpu, const char* filename) {
     char instruction[256];
     uint16_t operand;
 
+
+    if (!regexec(&comment_regex, line_buf, 0, NULL, 0)) {
+      // it's a comment; do nothing
+    } 
     if (!regexec(&abs_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-ABS");
+
       write_3_byte_instruction(cpu, opcode_lookup, instruction, operand);
     } 
 
@@ -121,6 +129,7 @@ void assemble(CpuState* cpu, const char* filename) {
     else if (!regexec(&zp_regex, line_buf, 0, NULL, 0)) {
       sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-ZP");
+
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
     
@@ -148,19 +157,19 @@ void assemble(CpuState* cpu, const char* filename) {
       write_single_byte_instruction(cpu, opcode_lookup, instruction);
     }
     else if (!regexec(&ind_regex, line_buf, 0, NULL, 0)) {
-      sscanf(line_buf, "%s", instruction);
+      sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
     else if (!regexec(&ind_x_regex, line_buf, 0, NULL, 0)) {
-      sscanf(line_buf, "%s", instruction);
+      sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND_X");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
     }
     else if (!regexec(&ind_y_regex, line_buf, 0, NULL, 0)) {
-      sscanf(line_buf, "%s", instruction);
+      sscanf(line_buf, "%s $%hx", instruction, &operand);
       strcat(instruction, "-IND_Y");
 
       write_2_byte_instruction(cpu, opcode_lookup, instruction, operand & 0xFF);
