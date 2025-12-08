@@ -32,7 +32,8 @@ CpuInstruction get_instruction(const CpuState* cpu){
 
   CpuInstruction current_instruction = opcode_x_cpu_instruction_lookup[opcode];
   if(current_instruction.name == ILLEGAL_INSTRUCTION){
-    printf("illegal instruction (opcode %x)\n", opcode);
+    printf("illegal instruction (opcode %x) at 0x%x\n", opcode, cpu->pc);
+    exit(1);
   }
 
   return current_instruction;
@@ -51,6 +52,8 @@ void cpu_cycle(CpuState* cpu){
 
 	// execute the instruction, updating the state of the cpu
 	CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
+
+	printf("Executed %s at %x\n", current_instruction.name_str, cpu->pc);
    
 	// set the number of cycles until the next instruction is loaded
 	cycles_until_next_instruction = current_instruction.cycles_left + instruction_result.additional_cpu_cycles;

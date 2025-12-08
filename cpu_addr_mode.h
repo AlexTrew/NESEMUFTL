@@ -7,13 +7,6 @@
 
 
 typedef struct CpuAddressingModeResult{
-  /* the result of an addressing mode.
-     pc_pffset: the number of bytes by which using this addressing mode should increment the program counter.
-     operand: the memory address or value to be used as the operand (if any) of the current instruction.
-     additional_cycles: sometimes, some addressing modes require the current instruction to take additional clock cycles;
-     that is specified here. */
-  
-  int16_t pc_offset; // the amount by which to increment the program counter; usually the size in bytes of the instruction and its operands
   uint16_t operand_address;
   uint8_t additional_cycles;
 } CpuAddressingModeResult;

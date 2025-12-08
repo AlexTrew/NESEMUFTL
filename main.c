@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 
   assemble(cpu, argv[1]);
   
-  for(int i=0;i<100;++i){
+  while(true){
     cpu_cycle(cpu);
   }
 
