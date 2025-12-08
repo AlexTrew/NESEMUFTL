@@ -75,7 +75,6 @@ void assemble(CpuState* cpu, const char* filename) {
 
   // setup and compile regex matchers
   // yes I know this is not how to interpret a programming language but I cbf
-  regex_t alias_regex;
   regex_t comment_regex;
   regex_t abs_regex;
   regex_t abs_xy_regex;
@@ -96,7 +95,7 @@ void assemble(CpuState* cpu, const char* filename) {
   regcomp(&ind_x_regex, "[A-Z]\{3\} ([\$][[:xdigit:]]\{2\},X)\s*;*.*$", REG_EXTENDED);
   regcomp(&ind_y_regex, "[A-Z]\{3\} ([\$][[:xdigit:]]\{2\}),Y\s*;*.*$", REG_EXTENDED);
   regcomp(&imm_regex, "[A-Z]\{3\} #[\$][[:xdigit:]]\{2\}\s*;*.*$", REG_EXTENDED);
-  regcomp(&implied_regex, "^[A-Z]\{3\}\s*;*.*$", REG_EXTENDED);
+  regcomp(&implied_regex, "[A-Z]\{3\}\s*;*.*$", REG_EXTENDED);
 
   char line_buf[MAX_LINE_LEN];
   int line_no = 1;
