@@ -349,7 +349,7 @@ CpuInstructionResult JMP_(CpuState *cpu, CpuAddrMode addr_mode) {
 
     uint16_t target_addr = addr_mode_data.operand_address;
 
-    // set the pc offset
+    // set the new pc 
     cpu->pc = target_addr;
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -368,7 +368,7 @@ CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
     set_status_flag(cpu, Z, (cpu->a == 0));
     set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+   CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
 };
 
@@ -570,7 +570,7 @@ CpuInstructionResult SEI_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, cpu->pc, cpu->a);
+    write_memory(cpu, addr_mode_data.operand_address, cpu->a);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -578,7 +578,7 @@ CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, cpu->pc, cpu->x);
+    write_memory(cpu, addr_mode_data.operand_address, cpu->x);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -586,7 +586,7 @@ CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult STY_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, cpu->pc, cpu->y);
+    write_memory(cpu, addr_mode_data.operand_address, cpu->y);
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
