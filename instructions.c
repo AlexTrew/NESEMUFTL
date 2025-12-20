@@ -38,6 +38,8 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
 }  
 
 static void stack_push(CpuState* cpu, uint8_t value){
+  /* the stack is from 0x0100 - 0x01FF. Since cpu->stkptr is a single byte, we
+     offset this from 0x0100, ensuring that the stack ptr never leaves its boundaries */
     uint16_t actual_stack_ptr = cpu->stkptr + 0x0100;
     write_memory(cpu, actual_stack_ptr, value);
     ++cpu->stkptr; 
