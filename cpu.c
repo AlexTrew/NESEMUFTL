@@ -29,13 +29,7 @@ void delete_cpu(CpuState*cpu){
 
 CpuInstruction get_instruction(const CpuState* cpu){
   uint8_t opcode = cpu->bus[cpu->pc];
-
   CpuInstruction current_instruction = opcode_x_cpu_instruction_lookup[opcode];
-  if(current_instruction.name == ILLEGAL_INSTRUCTION){
-    printf("illegal instruction (opcode %x) at 0x%x\n", opcode, cpu->pc);
-    exit(1);
-  }
-
   return current_instruction;
 }
 
@@ -49,6 +43,10 @@ void cpu_cycle(CpuState* cpu){
 
 	// look up the instruction and get the operand using the specified addressing mode.
 	CpuInstruction current_instruction = get_instruction(cpu);
+	if(current_instruction.name == ILLEGAL_INSTRUCTION){
+	  printf("illegal instruction (opcode %x) at 0x%x\n", cpu->bus[cpu->pc], cpu->pc);
+	  return;
+	}
 
 	// execute the instruction, updating the state of the cpu
 	CpuInstructionResult instruction_result = cpu_instruction_lookup[current_instruction.name](cpu, current_instruction.addressing_mode);
