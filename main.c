@@ -43,7 +43,9 @@ int main(){
     bus[i] = 0x00;
   }
 
+
   CpuState* cpu = init_cpu(bus);
+  assemble(cpu, "/home/alex/Documents/test_6502");
 
   printf("NESEMUFTL: a NES emulator (currently just a 6502)\n\n");
 

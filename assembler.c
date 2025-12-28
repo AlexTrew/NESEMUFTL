@@ -1,4 +1,3 @@
-
 #include "assembler.h"
 #include "cpu_state.h"
 #include "shared.h"
@@ -55,7 +54,7 @@ format.
 }  
 
 
-void assemble(CpuState* cpu, const char* filename) {
+void assemble_legacy(CpuState* cpu, const char* filename) {
 
   // build a lookup of opcodes
   GHashTable* opcode_lookup = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, hash_table_destroy_value);
@@ -209,3 +208,78 @@ void assemble(CpuState* cpu, const char* filename) {
 
   fclose(file);
 }
+
+
+char*** lex_file(const char * filename) {
+  // process the input file
+  FILE* file = fopen(filename, "r");
+
+  if (file == NULL) {
+    printf("File %s not found\n", filename);
+    exit(1);
+  }
+
+  printf("file %s opened\n", filename);
+
+  // determine the number of lines in the file to allocate the
+  // correct amount of memory.  
+  int no_of_lines = 0;
+  char line_buf[MAX_LINE_LEN];
+  while (fgets(line_buf, MAX_LINE_LEN, file) != NULL) {
+    ++no_of_lines;
+  }
+
+  rewind(file);  
+
+  char*** tokenised_lines = malloc(no_of_lines*sizeof(char**));
+
+  int i = 0;
+  while (fgets(line_buf, MAX_LINE_LEN, file) != NULL) {
+
+    char** lexed_line = malloc(MAX_LINE_LEN*sizeof(char*));
+
+    char* token = strtok(line_buf, " ");
+    int j = 0;
+    while (token != NULL) {
+      token[strcspn(token, "\n")] = 0;
+      char* tok = malloc(sizeof(token));
+      strcpy(tok, token);
+      lexed_line[j++] = tok;
+      token = strtok(NULL, token);
+    }
+    tokenised_lines[i++] = lexed_line;
+  }    
+
+  fclose(file);
+
+  return tokenised_lines;
+}
+
+void _parse_tokens(char ***tokens) {
+  // check for a label and use it
+  regex_t label_regex;
+  regcomp(&label_regex, "", REG_EXTENDED);
+
+  // determine instruction type
+
+  // determine the addressing mode and get the operand
+
+  // write things!
+}  
+
+
+void assemble(CpuState *cpu, const char* filename) {
+  // build a lookup of opcodes
+  GHashTable* opcode_lookup = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, hash_table_destroy_value);
+  for (uint16_t i = 0; i < NUMBER_OF_INSTRUCTIONS; ++i) {
+    uint8_t* opcode = malloc(sizeof(int));
+    memcpy(opcode, &i, sizeof(int));
+    g_hash_table_insert(opcode_lookup, opcode_x_cpu_instruction_lookup[i].name_str, GINT_TO_POINTER(opcode));
+  }
+
+  char*** tokens = lex_file(filename);
+
+  // cleanup  
+  g_hash_table_destroy(opcode_lookup);
+
+}  
