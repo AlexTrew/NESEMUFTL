@@ -46,7 +46,7 @@ static void stack_push(CpuState* cpu, uint8_t value){
 };
 
 static uint8_t stack_pop(CpuState* cpu){
-    uint16_t actual_stack_ptr = cpu->stkptr + 0x0100;
+    uint16_t actual_stack_ptr = 0x0100 - cpu->stkptr ;
     uint8_t res = read_memory(cpu, actual_stack_ptr);
     --cpu->stkptr;
 
@@ -58,13 +58,13 @@ CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
     uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
     uint16_t result = cpu->a + m + get_status_flag(cpu, C);
 
+    cpu->a = result & 0xFF;
     // set status flags
-    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
+    set_status_flag(cpu, V, (~((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
     set_status_flag(cpu, C, (result > 0xFF));
     set_status_flag(cpu, Z, (cpu->a == 0));
     set_status_flag(cpu, N, cpu->a & 0x80);
 
-    cpu->a = result & 0xFF;
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -319,8 +319,8 @@ CpuInstructionResult INC_(CpuState *cpu, CpuAddrMode addr_mode) {
     uint16_t value = read_memory(cpu, addr_mode_data.operand_address) + 1;
     write_memory(cpu, addr_mode_data.operand_address, value);
 
-    set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->y & 0x80));
+    set_status_flag(cpu, Z, (value & 0xFF) == 0);
+    set_status_flag(cpu, N, (value & 0x80));
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -329,8 +329,9 @@ CpuInstructionResult INC_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult INX_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     
-    set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->y & 0x80));
+    cpu->x++;
+    set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
+    set_status_flag(cpu, N, (cpu->x & 0x80));
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
@@ -339,6 +340,7 @@ CpuInstructionResult INX_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult INY_(CpuState *cpu, CpuAddrMode addr_mode) {
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
     
+    cpu->y++;
     set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
     set_status_flag(cpu, N, (cpu->y & 0x80));
 
@@ -527,8 +529,8 @@ CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
     uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
-
     uint16_t result = cpu->a - m - (1 - get_status_flag(cpu, C));
+    cpu->a = result & 0xFF;
 
     // set status flags
     set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
@@ -536,7 +538,6 @@ CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){
     set_status_flag(cpu, Z, (cpu->a == 0));
     set_status_flag(cpu, N, cpu->a & 0x80);
 
-    cpu->a = result & 0xFF;
 
     CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
     return res;
