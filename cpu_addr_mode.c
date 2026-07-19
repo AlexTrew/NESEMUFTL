@@ -12,10 +12,10 @@ CpuAddressingModeResult immediate_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult absolute_addressing_mode(const CpuState* cpu){
-     uint16_t lo_order_bits = cpu->bus[cpu->pc+1] & 0x00FF;
-     uint16_t hi_order_bits = cpu->bus[cpu->pc+2] & 0x00FF;
-     CpuAddressingModeResult res = {.operand_address=(hi_order_bits << 8) | lo_order_bits, .additional_cycles=0};
-     return res;
+  uint16_t lo_order_bits = cpu->bus[cpu->pc+1] & 0x00FF;
+  uint16_t hi_order_bits = cpu->bus[cpu->pc+2] & 0x00FF;
+  CpuAddressingModeResult res = {.operand_address=(hi_order_bits << 8) | lo_order_bits, .additional_cycles=0};
+  return res;
 }
 
 CpuAddressingModeResult absolute_x_addressing_mode(const CpuState* cpu){
@@ -49,6 +49,20 @@ CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu){
 
 CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu){
   CpuAddressingModeResult res = {.operand_address=cpu->bus[cpu->pc+1]};
+  return res;
+}
+
+CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu){
+  uint16_t lo = cpu->bus[cpu->pc+1] & 0x00FF;
+  uint16_t hi = cpu->bus[cpu->pc+2] & 0x00FF;
+  uint16_t addr_of_effective_addr = (hi << 8 | lo);
+
+  uint16_t effective_addr_lo = cpu->bus[addr_of_effective_addr] & 0x00FF;
+  uint16_t effective_addr_hi = cpu->bus[addr_of_effective_addr+1] & 0x00FF;
+
+  uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo);
+
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2};
   return res;
 }
 

@@ -39,12 +39,13 @@ END_TEST
 
 START_TEST(test_absolute_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
-    bus[0x0100] = 0xFE;
+    bus[0x00FF] = 0x10;
+    bus[0x0100] = 0x30;
+
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = absolute_addressing_mode(cpu);
-    uint16_t expected = 0xFE16;
+    uint16_t expected = 0x3010;
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 
 }
@@ -52,11 +53,11 @@ END_TEST
 
 START_TEST(test_absolute_x_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x0;
-    bus[0x0100] = 0xFE;
-    cpu->x=0x01;
+    bus[0x00FF] = 0x20;
+    bus[0x0100] = 0x31;
+    cpu->x=0x0012;
     cpu->pc = 0x00FE;
-    uint16_t expected = 0xFE01;
+    uint16_t expected = 0x3132;
 
     CpuAddressingModeResult res = absolute_x_addressing_mode(cpu);
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
@@ -65,25 +66,24 @@ END_TEST
 
 START_TEST(test_absolute_y_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x00;
-    bus[0x0100] = 0xFE;
-    cpu->y=0x01;
+    bus[0x00FF] = 0x20;
+    bus[0x0100] = 0x31;
+    cpu->y=0x0012;
     cpu->pc = 0x00FE;
-    uint16_t expected = 0xFE01;
+    uint16_t expected = 0x3132;
 
     CpuAddressingModeResult res = absolute_y_addressing_mode(cpu);
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
-
 }
 END_TEST
 
 START_TEST(test_zp_addressing_mode){
     bus[0x00FE] = 0x15;
-    bus[0x00FF] = 0x16;
+    bus[0x00FF] = 0x80;
     cpu->pc = 0x00FE;
 
     CpuAddressingModeResult res = zero_page_addressing_mode(cpu);
-    uint16_t expected = 0x0016;
+    uint16_t expected = 0x0080;
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
@@ -99,6 +99,22 @@ START_TEST(test_ind_x_addressing_mode){
 
     CpuAddressingModeResult res = indirect_x_addressing_mode(cpu);
     uint16_t expected = 0x0705;
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
+}
+END_TEST
+
+START_TEST(test_indirect_addressing_mode){
+    bus[0x0001] = 0x00;
+    bus[0x0002] = 0x82;
+    bus[0x0003] = 0xFF;
+
+    bus[0xFF82] = 0xC4;
+    bus[0xFF83] = 0x80;
+
+    cpu->pc = 0x0001;
+
+    CpuAddressingModeResult res = indirect_addressing_mode(cpu);
+    uint16_t expected = 0x80C4;
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
@@ -180,6 +196,7 @@ Suite* create_cpu_case(Suite* s){
     tcase_add_test(tc, test_zp_addressing_mode);
     tcase_add_test(tc, test_zpx_addressing_mode);
     tcase_add_test(tc, test_zpy_addressing_mode);
+    tcase_add_test(tc, test_indirect_addressing_mode);
     tcase_add_test(tc, test_ind_x_addressing_mode);
     tcase_add_test(tc, test_ind_y_addressing_mode);
     tcase_add_test(tc, test_ind_y_addressing_mode_with_carry);

@@ -5,6 +5,7 @@
 #include "cpu_addr_mode.h"
 #include "cpu_state.h"
 #include "instructions.h"
+#include "shared.h"
 
 /* some functions to make reading and writing memory slightly more readable */
 
@@ -349,6 +350,10 @@ CpuInstructionResult INY_(CpuState *cpu, CpuAddrMode addr_mode) {
 };
 
 CpuInstructionResult JMP_(CpuState *cpu, CpuAddrMode addr_mode) {
+
+    /* JMP only uses indirect addressing!*/
+
+    assert(addr_mode == INDIRECT);
     CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
     uint16_t target_addr = addr_mode_data.operand_address;
