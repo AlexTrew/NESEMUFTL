@@ -55,10 +55,10 @@ CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu){
 CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu){
   uint16_t lo = cpu->bus[cpu->pc+1] & 0x00FF;
   uint16_t hi = cpu->bus[cpu->pc+2] & 0x00FF;
-  uint16_t addr_of_effective_addr = (hi << 8 | lo);
+  uint16_t lookup_addr = (hi << 8 | lo);
 
-  uint16_t effective_addr_lo = cpu->bus[addr_of_effective_addr] & 0x00FF;
-  uint16_t effective_addr_hi = cpu->bus[addr_of_effective_addr+1] & 0x00FF;
+  uint16_t effective_addr_lo = cpu->bus[lookup_addr] & 0x00FF;
+  uint16_t effective_addr_hi = cpu->bus[lookup_addr+1] & 0x00FF;
 
   uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo);
 
@@ -67,25 +67,36 @@ CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu){
-  uint16_t lo = cpu->bus[cpu->pc+1+cpu->x] & 0x00FF;
-  uint16_t hi = cpu->bus[cpu->pc+2+cpu->x] & 0x00FF;
-  uint16_t addr = (hi << 8 | lo);
-  CpuAddressingModeResult res = {.operand_address=addr, .additional_cycles=0};
+  uint16_t lookup_addr = (cpu->bus[cpu->pc+1]) + cpu->x;
+
+  uint8_t additional_cycles = 0;
+  if (lookup_addr > 0x00FF) {
+    lookup_addr &= 0x00FF; 
+    additional_cycles=1;
+  }    
+  
+  uint16_t effective_addr_lo = cpu->bus[lookup_addr];
+  uint16_t effective_addr_hi = cpu->bus[lookup_addr+1];
+  uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo);
+
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2+additional_cycles};
   return res;
 }
 
 CpuAddressingModeResult indirect_y_addressing_mode(const CpuState* cpu){
-  uint16_t lo = cpu->bus[cpu->pc+1] + cpu->y;
-  uint8_t carry = 0;
+  uint16_t lookup_addr = (cpu->bus[cpu->pc+1]);
 
-  if(lo > 0xFF){
-    carry = 1;
-    lo &= 0x00FF;
-  }
+  uint8_t additional_cycles = 0;
+  if (lookup_addr > 0x00FF) {
+    lookup_addr &= 0x00FF; 
+    additional_cycles=1;
+  }    
+  
+  uint16_t effective_addr_lo = cpu->bus[lookup_addr];
+  uint16_t effective_addr_hi = cpu->bus[lookup_addr+1];
+  uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo) + cpu->y;
 
-  uint16_t hi = (cpu->bus[cpu->pc+2] + carry) & 0x00FF; 
-  uint16_t addr = (hi << 8 | lo);
-  CpuAddressingModeResult res = {.operand_address=addr, .additional_cycles=0};
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2+additional_cycles};
   return res;
 }
 

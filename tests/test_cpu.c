@@ -88,21 +88,6 @@ START_TEST(test_zp_addressing_mode){
 }
 END_TEST
 
-START_TEST(test_ind_x_addressing_mode){
-    bus[0x0001] = 0x00;
-    bus[0x0002] = 0x05;
-    bus[0x0003] = 0x07;
-    bus[0x0705] = 0x25;
-
-    cpu->x = 0x01;
-    cpu->pc = 0x0000;
-
-    CpuAddressingModeResult res = indirect_x_addressing_mode(cpu);
-    uint16_t expected = 0x0705;
-    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
-}
-END_TEST
-
 START_TEST(test_indirect_addressing_mode){
     bus[0x0001] = 0x00;
     bus[0x0002] = 0x82;
@@ -119,21 +104,40 @@ START_TEST(test_indirect_addressing_mode){
 }
 END_TEST
 
-START_TEST(test_ind_y_addressing_mode){
-    bus[0x0000] = 0x00;
-    bus[0x0001] = 0x03;
-    bus[0x0002] = 0x07;
+START_TEST(test_indirect_x_addressing_mode){
+    bus[0x0001] = 0x00;
+    bus[0x0002] = 0x70;
 
-    cpu->y = 0x01;
-    cpu->pc = 0x0000;
+    bus[0x0075] = 0x23;
+    bus[0x0076] = 0x30;
 
-    CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
-    uint16_t expected = 0x0704;
+    cpu->x = 0x05;
+    cpu->pc = 0x0001;
+
+    CpuAddressingModeResult res = indirect_x_addressing_mode(cpu);
+    uint16_t expected = 0x3023;
     ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
 }
 END_TEST
 
-START_TEST(test_ind_y_addressing_mode_with_carry){
+
+START_TEST(test_indirect_y_addressing_mode){
+    bus[0x0001] = 0x00;
+    bus[0x0002] = 0x70;
+
+    bus[0x0070] = 0x43;
+    bus[0x0071] = 0x35;
+
+    cpu->y = 0x10;
+    cpu->pc = 0x0001;
+
+    CpuAddressingModeResult res = indirect_y_addressing_mode(cpu);
+    uint16_t expected = 0x3553;
+    ck_assert_msg(res.operand_address == expected, "result %#04x != expected %#04x", res.operand_address, expected);
+}
+END_TEST
+
+START_TEST(test_indirect_y_addressing_mode_with_carry){
     bus[0x0000] = 0x00;
     bus[0x0001] = 0x03;
     bus[0x0002] = 0x07;
@@ -197,9 +201,9 @@ Suite* create_cpu_case(Suite* s){
     tcase_add_test(tc, test_zpx_addressing_mode);
     tcase_add_test(tc, test_zpy_addressing_mode);
     tcase_add_test(tc, test_indirect_addressing_mode);
-    tcase_add_test(tc, test_ind_x_addressing_mode);
-    tcase_add_test(tc, test_ind_y_addressing_mode);
-    tcase_add_test(tc, test_ind_y_addressing_mode_with_carry);
+    tcase_add_test(tc, test_indirect_x_addressing_mode);
+    tcase_add_test(tc, test_indirect_y_addressing_mode);
+    tcase_add_test(tc, test_indirect_y_addressing_mode_with_carry);
 
     suite_add_tcase(s, tc);
 
