@@ -62,7 +62,7 @@ CpuAddressingModeResult indirect_addressing_mode(const CpuState* cpu){
 
   uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo);
 
-  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2};
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=0};
   return res;
 }
 
@@ -79,7 +79,7 @@ CpuAddressingModeResult indirect_x_addressing_mode(const CpuState* cpu){
   uint16_t effective_addr_hi = cpu->bus[lookup_addr+1];
   uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo);
 
-  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2+additional_cycles};
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=additional_cycles};
   return res;
 }
 
@@ -96,7 +96,7 @@ CpuAddressingModeResult indirect_y_addressing_mode(const CpuState* cpu){
   uint16_t effective_addr_hi = cpu->bus[lookup_addr+1];
   uint16_t effective_addr = (effective_addr_hi << 8 | effective_addr_lo) + cpu->y;
 
-  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=2+additional_cycles};
+  CpuAddressingModeResult res = {.operand_address=effective_addr, .additional_cycles=additional_cycles};
   return res;
 }
 

@@ -7,6 +7,8 @@
 #include "instructions.h"
 #include "shared.h"
 
+const uint16_t STACK_POINTER_BASE = 0x0100;
+
 /* some functions to make reading and writing memory slightly more readable */
 
 static uint8_t read_memory(const CpuState* cpu, uint16_t address);
@@ -32,93 +34,95 @@ static void write_memory(const CpuState *cpu, uint16_t address, uint8_t value) {
 }
 
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
-    if ((a & 0xF0) != (b & 0xF0)) {
+  if ((a & 0xF0) != (b & 0xF0)) {
 	return false;
-    }          
-    return true;
-}  
+  }          
+  return true;
+}
+
 
 static void stack_push(CpuState* cpu, uint8_t value){
   /* the stack is from 0x0100 - 0x01FF. Since cpu->stkptr is a single byte, we
-     offset this from 0x0100, ensuring that the stack ptr never leaves its boundaries */
-    uint16_t actual_stack_ptr = cpu->stkptr + 0x0100;
-    write_memory(cpu, actual_stack_ptr, value);
-    ++cpu->stkptr; 
+   offset this from 0x0100, ensuring that the stack ptr never leaves its boundaries */
+  uint16_t actual_stack_ptr = STACK_POINTER_BASE - cpu->stkptr;
+  write_memory(cpu, actual_stack_ptr, value);
+  ++cpu->stkptr; 
 };
 
 static uint8_t stack_pop(CpuState* cpu){
-    uint16_t actual_stack_ptr = 0x0100 - cpu->stkptr ;
-    uint8_t res = read_memory(cpu, actual_stack_ptr);
-    --cpu->stkptr;
+  uint16_t actual_stack_ptr = STACK_POINTER_BASE - cpu->stkptr ;
 
-    return res;
+  uint8_t res = read_memory(cpu, actual_stack_ptr);
+  ++cpu->stkptr;
+
+  return res;
 };
 
 CpuInstructionResult ADC_(CpuState* cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
-    uint16_t result = cpu->a + m + get_status_flag(cpu, C);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
+  uint16_t result = cpu->a + m + get_status_flag(cpu, C);
 
-    cpu->a = result & 0xFF;
-    // set status flags
-    set_status_flag(cpu, V, (~((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
-    set_status_flag(cpu, C, (result > 0xFF));
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  cpu->a = result & 0xFF;
+  // set status flags
+  set_status_flag(cpu, V, (~((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
+  set_status_flag(cpu, C, (result > 0xFF));
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 }
 
 CpuInstructionResult AND_(CpuState* cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = (cpu->a & (read_memory(cpu, addr_mode_data.operand_address) & 0xFF));
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->a = (cpu->a & (read_memory(cpu, addr_mode_data.operand_address) & 0xFF));
 
-    // set status flags
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  // set status flags
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult ASL_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t abs_addr = addr_mode_data.operand_address;
-    uint16_t temp = read_memory(cpu, abs_addr) << 1;
+  uint16_t abs_addr = addr_mode_data.operand_address;
+  uint16_t temp = read_memory(cpu, abs_addr) << 1;
 
-    set_status_flag(cpu, C, (temp > 0xFF));
-    set_status_flag(cpu, Z, (temp == 0));
-    set_status_flag(cpu, N, 0);
+  set_status_flag(cpu, C, (temp > 0xFF));
+  set_status_flag(cpu, Z, (temp == 0));
+  set_status_flag(cpu, N, 0);
 
-    if(addr_mode == IMPLIED){
+  if(addr_mode == IMPLIED){
 	cpu->a = temp & 0xFF;
-    } else {
+  } else {
 	write_memory(cpu, abs_addr, temp);
-    }
+  }
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 // Branch instructions
 
 static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch, CpuAddrMode addr_mode){
-    // branch instructions always use RELATIVE addressing
-    assert(addr_mode == RELATIVE);
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  // branch instructions always use RELATIVE addressing
+  assert(addr_mode == RELATIVE);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint8_t additional_cycles_from_instruction = 0;
+  uint8_t additional_cycles_from_instruction = 0;
 
-    int8_t pc_offset = 0;
+  int8_t pc_offset = 0;
 
-    if(follow_branch){
+  if(follow_branch){
 
-        /* we read the operand as the target address, and get the offset from
-           the beginning of the next instruction. This takes the form of
-           offset = M - pc + 2, where 2 is the size of the current instruction,
+      /* we read the operand as the target address, and get the offset from
+         the beginning of the next instruction. This takes the form of
+         offset = M - pc + 2, where 2 is the size of the current instruction,
 	*/
 
 	uint16_t target_addr = addr_mode_data.operand_address;
@@ -127,8 +131,8 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 
 	// if the new address is on a different page, add another additional cycle
 	// 2 is the size of the branch instruction
-        if (!mem_addresses_on_same_page(target_addr, cpu->pc + 2)) {
-	    ++additional_cycles_from_instruction;
+      if (!mem_addresses_on_same_page(target_addr, cpu->pc + 2)) {
+	  ++additional_cycles_from_instruction;
 	};
 
 	// set the pc offset
@@ -138,94 +142,94 @@ static CpuInstructionResult branch_instruction(CpuState* cpu, bool follow_branch
 	else{
 	  pc_offset = ((cpu->pc +2) - target_addr);
 	}
-    }        
+  }        
 
-    CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
-    return res;
+  CpuInstructionResult res = {.pc_offset=pc_offset, .additional_cpu_cycles=addr_mode_data.additional_cycles+additional_cycles_from_instruction};
+  return res;
 }
 
 CpuInstructionResult BCC_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, C) == 0);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, C) == 0);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BCS_(CpuState* cpu, CpuAddrMode addr_mode){
-    bool follow_branch = (get_status_flag(cpu, C) == 1);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, C) == 1);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BEQ_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, Z) == 1);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, Z) == 1);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BMI_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, N) == 1);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, N) == 1);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BNE_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, Z) == 0);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, Z) == 0);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BPL_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, N) == 0);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, N) == 0);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BVC_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, V) == 0);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, V) == 0);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BVS_(CpuState *cpu, CpuAddrMode addr_mode) {
-    bool follow_branch = (get_status_flag(cpu, V) == 1);
-    return branch_instruction(cpu, follow_branch, addr_mode);
+  bool follow_branch = (get_status_flag(cpu, V) == 1);
+  return branch_instruction(cpu, follow_branch, addr_mode);
 };
 
 CpuInstructionResult BRK_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    stack_push(cpu, cpu->pc+2);
-    set_status_flag(cpu, I, 1);
+  stack_push(cpu, cpu->pc+2);
+  set_status_flag(cpu, I, 1);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult BIT_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
 CpuInstructionResult CLC_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    set_status_flag(cpu, C, 0);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  set_status_flag(cpu, C, 0);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult CLD_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    set_status_flag(cpu, D, 0);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  set_status_flag(cpu, D, 0);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult CLI_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    set_status_flag(cpu, I, 0);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  set_status_flag(cpu, I, 0);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult CLV_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    set_status_flag(cpu, V, 0);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  set_status_flag(cpu, V, 0);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 // comparison instructions
@@ -233,295 +237,305 @@ CpuInstructionResult CLV_(CpuState *cpu, CpuAddrMode addr_mode) {
 static CpuInstructionResult compare_instruction(CpuState* cpu, CpuAddrMode addr_mode, uint8_t value_to_compare){
   /* Compare a value with the operand of the current instruction and set the status flags accordingly. */
 
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint16_t diff = value_to_compare - addr_mode_data.operand_address;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  uint16_t diff = value_to_compare - addr_mode_data.operand_address;
 
-    set_status_flag(cpu, C, diff > 0xFF);
-    set_status_flag(cpu, N, diff & 0x80);
-    set_status_flag(cpu, Z, diff == 0);
+  set_status_flag(cpu, C, diff > 0xFF);
+  set_status_flag(cpu, N, diff & 0x80);
+  set_status_flag(cpu, Z, diff == 0);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 }
 
 
 CpuInstructionResult CMP_(CpuState *cpu, CpuAddrMode addr_mode) {
-    // compare memory with accumulator
-    // A - M
-    return compare_instruction(cpu, addr_mode, cpu->a);
+  // compare memory with accumulator
+  // A - M
+  return compare_instruction(cpu, addr_mode, cpu->a);
 };
 
 CpuInstructionResult CPX_(CpuState *cpu, CpuAddrMode addr_mode) {
-    // compare memory with X 
-    // X - M
-    return compare_instruction(cpu, addr_mode, cpu->x);
+  // compare memory with X 
+  // X - M
+  return compare_instruction(cpu, addr_mode, cpu->x);
 };
 
 CpuInstructionResult CPY_(CpuState *cpu, CpuAddrMode addr_mode) {
-    // compare memory with Y
-    // Y - M
-    return compare_instruction(cpu, addr_mode, cpu->x);
+  // compare memory with Y
+  // Y - M
+  return compare_instruction(cpu, addr_mode, cpu->x);
 };
 
 CpuInstructionResult DEC_(CpuState *cpu, CpuAddrMode addr_mode) {
-    // decrement the value at the memory location
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    uint8_t value = read_memory(cpu, addr_mode_data.operand_address) - 1;
-    write_memory(cpu, addr_mode_data.operand_address, value);
+  // decrement the value at the memory location
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  uint8_t value = read_memory(cpu, addr_mode_data.operand_address) - 1;
+  write_memory(cpu, addr_mode_data.operand_address, value);
 
-    set_status_flag(cpu, Z, (value & 0xFF) == 0);
-    set_status_flag(cpu, N, (value & 0x80));
+  set_status_flag(cpu, Z, (value & 0xFF) == 0);
+  set_status_flag(cpu, N, (value & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult DEX_(CpuState *cpu, CpuAddrMode addr_mode) {
-    cpu->x = cpu->x-1;
-    
-    set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->x & 0x80));
+  cpu->x = cpu->x-1;
+  
+  set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->x & 0x80));
 
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    CpuInstructionResult res = {
-      .pc_offset=0, .additional_cpu_cycles = addr_mode_data.additional_cycles
-          };
-    return res;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuInstructionResult res = {
+    .pc_offset=0, .additional_cpu_cycles = addr_mode_data.additional_cycles
+        };
+  return res;
 };
 
 CpuInstructionResult DEY_(CpuState *cpu, CpuAddrMode addr_mode) {
-    cpu->y = cpu->y-1;
-    
-    set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->y & 0x80));
+  cpu->y = cpu->y-1;
+  
+  set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->y & 0x80));
 
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    CpuInstructionResult res = {
-      .pc_offset=0, .additional_cpu_cycles = addr_mode_data.additional_cycles
-          };
-    return res;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuInstructionResult res = {
+    .pc_offset=0, .additional_cpu_cycles = addr_mode_data.additional_cycles
+        };
+  return res;
 };
 
 CpuInstructionResult EOR_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->a = read_memory(cpu, addr_mode_data.operand_address) ^ cpu->a;
+  cpu->a = read_memory(cpu, addr_mode_data.operand_address) ^ cpu->a;
 
-    set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->a & 0x80));
+  set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->a & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult INC_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    
-    uint16_t value = read_memory(cpu, addr_mode_data.operand_address) + 1;
-    write_memory(cpu, addr_mode_data.operand_address, value);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  
+  uint16_t value = read_memory(cpu, addr_mode_data.operand_address) + 1;
+  write_memory(cpu, addr_mode_data.operand_address, value);
 
-    set_status_flag(cpu, Z, (value & 0xFF) == 0);
-    set_status_flag(cpu, N, (value & 0x80));
+  set_status_flag(cpu, Z, (value & 0xFF) == 0);
+  set_status_flag(cpu, N, (value & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult INX_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    
-    cpu->x++;
-    set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->x & 0x80));
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  
+  cpu->x++;
+  set_status_flag(cpu, Z, (cpu->x & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->x & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult INY_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    
-    cpu->y++;
-    set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->y & 0x80));
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  
+  cpu->y++;
+  set_status_flag(cpu, Z, (cpu->y & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->y & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult JMP_(CpuState *cpu, CpuAddrMode addr_mode) {
 
-    /* JMP only uses indirect addressing!*/
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    assert(addr_mode == INDIRECT);
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  uint16_t target_addr = addr_mode_data.operand_address;
 
-    uint16_t target_addr = addr_mode_data.operand_address;
-
-    // set the new pc 
-    cpu->pc = target_addr;
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  // set the new pc 
+  cpu->pc = target_addr;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult JSR_(CpuState* cpu, CpuAddrMode addr_mode){
-    stack_push(cpu, cpu->pc+2);
-    return JMP_(cpu, addr_mode);
+  stack_push(cpu, cpu->pc+2);
+  return JMP_(cpu, addr_mode);
 };
 
 CpuInstructionResult LDA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = read_memory(cpu, addr_mode_data.operand_address);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->a = read_memory(cpu, addr_mode_data.operand_address);
 
-    // set zero status flag
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  // set zero status flag
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  return res;
 };
 
 CpuInstructionResult LDX_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->x = read_memory(cpu, addr_mode_data.operand_address);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->x = read_memory(cpu, addr_mode_data.operand_address);
 
-    // set zero status flag
-    set_status_flag(cpu, Z, (cpu->x == 0));
-    set_status_flag(cpu, N, cpu->x & 0x80);
+  // set zero status flag
+  set_status_flag(cpu, Z, (cpu->x == 0));
+  set_status_flag(cpu, N, cpu->x & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult LDY_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->y = read_memory(cpu, addr_mode_data.operand_address);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->y = read_memory(cpu, addr_mode_data.operand_address);
 
-    // set zero status flag
-    set_status_flag(cpu, Z, (cpu->y == 0));
-    set_status_flag(cpu, N, cpu->y & 0x80);
+  // set zero status flag
+  set_status_flag(cpu, Z, (cpu->y == 0));
+  set_status_flag(cpu, N, cpu->y & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult LSR_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t abs_addr = addr_mode_data.operand_address;
-    uint16_t temp = 1 >> read_memory(cpu, abs_addr);
+  uint16_t abs_addr = addr_mode_data.operand_address;
+  uint16_t temp = 1 >> read_memory(cpu, abs_addr);
 
-    set_status_flag(cpu, C, (temp > 0xFF));
-    set_status_flag(cpu, Z, (temp == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  set_status_flag(cpu, C, (temp > 0xFF));
+  set_status_flag(cpu, Z, (temp == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    if(addr_mode == IMPLIED){
+  if(addr_mode == IMPLIED){
 	cpu->a = temp & 0xFF;
-    } else {
+  } else {
 	write_memory(cpu, abs_addr, temp);
-    }
+  }
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult NOP_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
 
-    return res;
+  return res;
 };
 
 CpuInstructionResult ORA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->a = read_memory(cpu, addr_mode_data.operand_address) | cpu->a;
+  cpu->a = read_memory(cpu, addr_mode_data.operand_address) | cpu->a;
 
-    set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
-    set_status_flag(cpu, N, (cpu->a & 0x80));
+  set_status_flag(cpu, Z, (cpu->a & 0xFF) == 0);
+  set_status_flag(cpu, N, (cpu->a & 0x80));
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult PHA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    stack_push(cpu, cpu->a);
+  stack_push(cpu, cpu->a);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult PHP_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    stack_push(cpu, cpu->p);
+  stack_push(cpu, cpu->p);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult PLA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->a = stack_pop(cpu);
+  cpu->a = stack_pop(cpu);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult PLP_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    cpu->p = stack_pop(cpu);
+  cpu->p = stack_pop(cpu);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult ROL_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t abs_addr = addr_mode_data.operand_address;
-    bool tmp_carry = (abs_addr << 7) == 0;
+  if (addr_mode == ACCUM) {
+    uint8_t new_value = cpu->a << 1;
+    set_status_flag(cpu, C, cpu->a & 0x40);
 
-    uint16_t temp = read_memory(cpu, abs_addr) << get_status_flag(cpu, C);
+    if (get_status_flag(cpu, C))
+      new_value+=1;
 
-    set_status_flag(cpu, C, tmp_carry);
-    set_status_flag(cpu, Z, (temp == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+    cpu->a = new_value;
+  } else {
+    uint8_t old_value = read_memory(cpu, addr_mode_data.operand_address);
+    set_status_flag(cpu, C, old_value & 0x40);
 
-    if(addr_mode == IMPLIED){
-	cpu->a = temp & 0xFF;
-    } else {
-	write_memory(cpu, abs_addr, temp);
-    }
+    uint8_t new_value = old_value << 1;
+    if (get_status_flag(cpu, C))
+      new_value+=1;
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+    write_memory(cpu, addr_mode_data.operand_address);
+  }    
+  
+ CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  assert(false);
+  /*
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t abs_addr = addr_mode_data.operand_address;
-    bool tmp_carry = (7 >> abs_addr) == 0;
+  if (addr_mode == ACCUM) {
+    uint8_t new_value = cpu->a >> 1;
+    set_status_flag(cpu, C, cpu->a & 0x40);
 
-    uint16_t temp = get_status_flag(cpu, C) >> read_memory(cpu, abs_addr);
+    if (get_status_flag(cpu, C))
+      new_value+=1;
 
-    set_status_flag(cpu, C, tmp_carry);
-    set_status_flag(cpu, Z, (temp == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+    cpu->a = new_value;
+  } else {
+    uint8_t old_value = read_memory(cpu, addr_mode_data.operand_address);
+    set_status_flag(cpu, C, old_value & 0x40);
 
-    if(addr_mode == IMPLIED){
-	cpu->a = temp & 0xFF;
-    } else {
-	write_memory(cpu, abs_addr, temp);
-    }
+    uint8_t new_value = old_value >> 1;
+    if (get_status_flag(cpu, C))
+      new_value+=1;
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+    write_memory(cpu, addr_mode_data.operand_address);
+  }    
+  
+
+
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
+  /*
 };
 
 CpuInstructionResult RTI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
@@ -531,139 +545,139 @@ CpuInstructionResult RTS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /
 CpuInstructionResult TRS_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
 
 CpuInstructionResult SBC_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
-    uint16_t result = cpu->a - m - (1 - get_status_flag(cpu, C));
-    cpu->a = result & 0xFF;
+  uint16_t m = read_memory(cpu, addr_mode_data.operand_address);
+  uint16_t result = cpu->a - m - (1 - get_status_flag(cpu, C));
+  cpu->a = result & 0xFF;
 
-    // set status flags
-    set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
-    set_status_flag(cpu, C, (result > 0xFF));
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  // set status flags
+  set_status_flag(cpu, V, ~(((uint16_t)cpu->a ^ m) & ((uint16_t)cpu->a ^ result)) & 0x80); // still not sure why this works and the gcc builtin doesnt, but it does.
+  set_status_flag(cpu, C, (result > 0xFF));
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult SEC_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    set_status_flag(cpu, C, 1);
+  set_status_flag(cpu, C, 1);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult SED_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    set_status_flag(cpu, D, 1);
+  set_status_flag(cpu, D, 1);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult SEI_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
 
-    set_status_flag(cpu, I, 1);
+  set_status_flag(cpu, I, 1);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 
 CpuInstructionResult STA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, addr_mode_data.operand_address, cpu->a);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  write_memory(cpu, addr_mode_data.operand_address, cpu->a);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult STX_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, addr_mode_data.operand_address, cpu->x);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  write_memory(cpu, addr_mode_data.operand_address, cpu->x);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult STY_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    write_memory(cpu, addr_mode_data.operand_address, cpu->y);
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  write_memory(cpu, addr_mode_data.operand_address, cpu->y);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 }
 
 CpuInstructionResult TAX_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->x = cpu->a;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->x = cpu->a;
 
-    set_status_flag(cpu, Z, (cpu->x == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  set_status_flag(cpu, Z, (cpu->x == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult TAY_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->y = cpu->a;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->y = cpu->a;
 
-    set_status_flag(cpu, Z, (cpu->y == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  set_status_flag(cpu, Z, (cpu->y == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult TSX_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->x = cpu->stkptr;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->x = cpu->stkptr;
 
-    set_status_flag(cpu, Z, (cpu->x == 0));
-    set_status_flag(cpu, N, cpu->x & 0x80);
+  set_status_flag(cpu, Z, (cpu->x == 0));
+  set_status_flag(cpu, N, cpu->x & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult TXA_(CpuState* cpu, CpuAddrMode addr_mode){
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a = cpu->stkptr;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->a = cpu->stkptr;
 
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult TXS_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->stkptr = cpu->x;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->stkptr = cpu->x;
 
-    set_status_flag(cpu, Z, (cpu->stkptr == 0));
-    set_status_flag(cpu, N, cpu->stkptr & 0x80);
+  set_status_flag(cpu, Z, (cpu->stkptr == 0));
+  set_status_flag(cpu, N, cpu->stkptr & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult TYA_(CpuState *cpu, CpuAddrMode addr_mode) {
-    CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-    cpu->a= cpu->y;
+  CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  cpu->a= cpu->y;
 
-    set_status_flag(cpu, Z, (cpu->a == 0));
-    set_status_flag(cpu, N, cpu->a & 0x80);
+  set_status_flag(cpu, Z, (cpu->a == 0));
+  set_status_flag(cpu, N, cpu->a & 0x80);
 
-    CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
-    return res;
+  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
+  return res;
 };
 
 CpuInstructionResult ILLEGAL_INSTRUCTION_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
@@ -735,10 +749,10 @@ static uint8_t get_status_flag(const CpuState* cpu, CpuStatusFlag f){
 
 static void set_status_flag(CpuState* cpu, CpuStatusFlag f, bool v){
   if(v){
-    cpu->p |= f;
+  cpu->p |= f;
   }
   else{
-    cpu->p &= ~f;
+  cpu->p &= ~f;
   }
 }
 
