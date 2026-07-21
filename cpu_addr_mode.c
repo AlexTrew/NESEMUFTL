@@ -48,7 +48,7 @@ CpuAddressingModeResult zero_page_y_offset_addressing_mode(const CpuState* cpu){
 }
 
 CpuAddressingModeResult relative_addressing_mode(const CpuState* cpu){
-  CpuAddressingModeResult res = {.operand_address=cpu->bus[cpu->pc+1]};
+  CpuAddressingModeResult res = {.operand_address=cpu->bus[cpu->pc+1], .additional_cycles=0};
   return res;
 }
 
@@ -129,6 +129,7 @@ const AddrModeFptr addr_mode_lookup[] = {
   [ABS_X] = absolute_x_addressing_mode,
   [ABS_Y] = absolute_y_addressing_mode,
   [IMPLIED] = implied_addressing_mode,
+  [INDIRECT] = indirect_addressing_mode,
   [RELATIVE] = relative_addressing_mode,
   [IND_X] = indirect_x_addressing_mode,
   [IND_Y] = indirect_y_addressing_mode,

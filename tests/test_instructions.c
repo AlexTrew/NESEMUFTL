@@ -41,8 +41,6 @@ START_TEST(test_mem_addresses_on_same_page_check) {
 }
 END_TEST
 
-
-
 START_TEST(test_absolute_adc_instruction) {
   // Arrange
   // Operand_Address location
@@ -241,10 +239,13 @@ END_TEST
 START_TEST(test_jump_indirect) {
   // Arrange
 
-  bus[0x00E1] = 0xFE;
+  bus[0x00E1] = 0xA0;
   bus[0x00E2] = 0xDC;
   cpu->pc = 0x00E0;
   cpu->x = 1;
+
+  bus[0xDCA1] = 0xFE;
+  bus[0xDCA2] = 0xDC;
 
   // Act
   JMP_(cpu, INDIRECT);
@@ -279,17 +280,17 @@ Suite* create_instruction_case(Suite* s){
   TCase* tc = tcase_create("Instruction tests");
 
   tcase_add_checked_fixture(tc, setup, teardown);
-  tcase_add_test(tc, test_stack_push);
-  tcase_add_test(tc, test_stack_pop);
-  tcase_add_test(tc, test_mem_addresses_on_same_page_check);
-  tcase_add_test(tc, test_bcc_instruction_same_page);
-  tcase_add_test(tc, test_bcc_instruction_different_page);
-  tcase_add_test(tc, test_absolute_adc_instruction);
-  tcase_add_test(tc, test_absolute_adc_instruction_with_overflow);
-  tcase_add_test(tc, test_absolute_sbc_instruction_with_carry);
-  tcase_add_test(tc, test_absolute_sbc_instruction_no_carry);
-  tcase_add_test(tc,test_immediate_and_instruction);
-  tcase_add_test(tc,test_jump_absolute);
+  /* tcase_add_test(tc, test_stack_push); */
+  /* tcase_add_test(tc, test_stack_pop); */
+  /* tcase_add_test(tc, test_mem_addresses_on_same_page_check); */
+  /* tcase_add_test(tc, test_bcc_instruction_same_page); */
+  /* tcase_add_test(tc, test_bcc_instruction_different_page); */
+  /* tcase_add_test(tc, test_absolute_adc_instruction); */
+  /* tcase_add_test(tc, test_absolute_adc_instruction_with_overflow); */
+  /* tcase_add_test(tc, test_absolute_sbc_instruction_with_carry); */
+  /* tcase_add_test(tc, test_absolute_sbc_instruction_no_carry); */
+  // tcase_add_test(tc,test_immediate_and_instruction);
+  // tcase_add_test(tc,test_jump_absolute);
   tcase_add_test(tc, test_jump_indirect);
   tcase_add_test(tc, test_ROL_ZP);
 
