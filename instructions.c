@@ -238,7 +238,7 @@ static CpuInstructionResult compare_instruction(CpuState* cpu, CpuAddrMode addr_
   /* Compare a value with the operand of the current instruction and set the status flags accordingly. */
 
   CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-  uint16_t diff = value_to_compare - addr_mode_data.operand_address;
+  uint16_t diff = value_to_compare - read_memory(cpu,addr_mode_data.operand_address);
 
   set_status_flag(cpu, C, diff > 0xFF);
   set_status_flag(cpu, N, diff & 0x80);
@@ -264,7 +264,7 @@ CpuInstructionResult CPX_(CpuState *cpu, CpuAddrMode addr_mode) {
 CpuInstructionResult CPY_(CpuState *cpu, CpuAddrMode addr_mode) {
   // compare memory with Y
   // Y - M
-  return compare_instruction(cpu, addr_mode, cpu->x);
+  return compare_instruction(cpu, addr_mode, cpu->y);
 };
 
 CpuInstructionResult DEC_(CpuState *cpu, CpuAddrMode addr_mode) {
