@@ -34,7 +34,7 @@ static void write_memory(const CpuState *cpu, uint16_t address, uint8_t value) {
 }
 
 static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
-  if ((a & 0xF0) != (b & 0xF0)) {
+  if ((a & 0xFF00) != (b & 0xFF00)) {
 	return false;
   }          
   return true;
@@ -486,21 +486,22 @@ CpuInstructionResult ROL_(CpuState *cpu, CpuAddrMode addr_mode) {
 
   if (addr_mode == ACCUM) {
     uint8_t new_value = cpu->a << 1;
-    set_status_flag(cpu, C, cpu->a & 0x40);
 
     if (get_status_flag(cpu, C))
       new_value+=1;
 
     cpu->a = new_value;
+    set_status_flag(cpu, C, cpu->a & 0x80);
+
   } else {
     uint8_t old_value = read_memory(cpu, addr_mode_data.operand_address);
-    set_status_flag(cpu, C, old_value & 0x40);
 
     uint8_t new_value = old_value << 1;
     if (get_status_flag(cpu, C))
       new_value+=1;
 
     write_memory(cpu, addr_mode_data.operand_address, new_value);
+    set_status_flag(cpu, C, old_value & 0x80);
   }    
   
  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
@@ -650,7 +651,7 @@ CpuInstructionResult TSX_(CpuState* cpu, CpuAddrMode addr_mode){
 
 CpuInstructionResult TXA_(CpuState* cpu, CpuAddrMode addr_mode){
   CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
-  cpu->a = cpu->stkptr;
+  cpu->a = cpu->x;
 
   set_status_flag(cpu, Z, (cpu->a == 0));
   set_status_flag(cpu, N, cpu->a & 0x80);
