@@ -25,7 +25,6 @@
   - The first byte of the instruction contains this information
  */
 
-
 CpuState *init_cpu(uint8_t* bus);
 
 void delete_cpu(CpuState* cpu);

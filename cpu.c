@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "instructions.h"
 #include "cpu_state.h"
+#include "shared.h"
 
 /*
   See page 10 of archive.6502.org/datasheets/rockwell_r650x_r651x.pdf for a
@@ -17,7 +18,7 @@ CpuState* init_cpu(uint8_t* memory){
   cpu_ptr->y=0x00;
   cpu_ptr->p=0x00;
   cpu_ptr->pc=0x0600;
-  cpu_ptr->stkptr=0x00;
+  cpu_ptr->stkptr=0xFF;
   cpu_ptr->cpu_cycle_count = 0;
   cpu_ptr->bus=memory;
   return cpu_ptr;

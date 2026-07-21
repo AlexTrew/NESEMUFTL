@@ -5,9 +5,9 @@
 #include "cpu_addr_mode.h"
 #include "cpu_state.h"
 #include "instructions.h"
-#include "shared.h"
 
-const uint16_t STACK_POINTER_BASE = 0x0100;
+
+const uint16_t STACK_BASE = 0x0100;
 
 /* some functions to make reading and writing memory slightly more readable */
 
@@ -44,13 +44,13 @@ static bool mem_addresses_on_same_page(uint16_t a, uint16_t b) {
 static void stack_push(CpuState* cpu, uint8_t value){
   /* the stack is from 0x0100 - 0x01FF. Since cpu->stkptr is a single byte, we
    offset this from 0x0100, ensuring that the stack ptr never leaves its boundaries */
-  uint16_t actual_stack_ptr = STACK_POINTER_BASE - cpu->stkptr;
+  uint16_t actual_stack_ptr = STACK_BASE + cpu->stkptr;
   write_memory(cpu, actual_stack_ptr, value);
-  ++cpu->stkptr; 
+  --cpu->stkptr; 
 };
 
 static uint8_t stack_pop(CpuState* cpu){
-  uint16_t actual_stack_ptr = STACK_POINTER_BASE - cpu->stkptr ;
+  uint16_t actual_stack_ptr = STACK_BASE + cpu->stkptr ;
 
   uint8_t res = read_memory(cpu, actual_stack_ptr);
   ++cpu->stkptr;
@@ -500,7 +500,7 @@ CpuInstructionResult ROL_(CpuState *cpu, CpuAddrMode addr_mode) {
     if (get_status_flag(cpu, C))
       new_value+=1;
 
-    write_memory(cpu, addr_mode_data.operand_address);
+    write_memory(cpu, addr_mode_data.operand_address, new_value);
   }    
   
  CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
@@ -509,8 +509,8 @@ CpuInstructionResult ROL_(CpuState *cpu, CpuAddrMode addr_mode) {
 
 CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){
   assert(false);
-  /*
   CpuAddressingModeResult addr_mode_data = addr_mode_lookup[addr_mode](cpu);
+  /*
 
   if (addr_mode == ACCUM) {
     uint8_t new_value = cpu->a >> 1;
@@ -533,9 +533,10 @@ CpuInstructionResult ROR_(CpuState* cpu, CpuAddrMode addr_mode){
   
 
 
+  */
   CpuInstructionResult res = {.pc_offset=0, .additional_cpu_cycles=addr_mode_data.additional_cycles};
   return res;
-  /*
+
 };
 
 CpuInstructionResult RTI_(CpuState* cpu, CpuAddrMode addr_mode){assert(false); /* not implemented */};
